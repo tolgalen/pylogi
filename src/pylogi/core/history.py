@@ -18,7 +18,7 @@ class BatteryHistory:
         self.path = path or config_dir() / "battery.json"
         self.data: dict[str, list[list[float]]] = {}
         try:
-            self.data = json.loads(self.path.read_text())
+            self.data = json.loads(self.path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             pass
 
@@ -60,6 +60,6 @@ class BatteryHistory:
 
     def _save(self) -> None:
         try:
-            self.path.write_text(json.dumps(self.data))
+            self.path.write_text(json.dumps(self.data), encoding="utf-8")
         except OSError:
             pass

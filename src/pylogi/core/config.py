@@ -48,7 +48,7 @@ class Config:
         self._dev: dict[str, dict[str, Any]] = {}      # id -> {"name": .., "id": .., "settings": {prefix: value}}
         self._files: dict[str, Path] = {}              # id -> file
         try:
-            self.data = json.loads(self.path.read_text())
+            self.data = json.loads(self.path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             pass
         self._scan()
@@ -68,7 +68,7 @@ class Config:
             return
         for f in files:
             try:
-                d = json.loads(f.read_text())
+                d = json.loads(f.read_text(encoding="utf-8"))
                 ident = d["id"]
                 if isinstance(d.get("settings"), dict):
                     self._dev[ident], self._files[ident] = d, f
@@ -90,7 +90,7 @@ class Config:
         target = self.devdir / f"{_slug(e.get('name') or 'device')}__{_slug(ident, 80)}.json"
         try:
             self.devdir.mkdir(parents=True, exist_ok=True)
-            target.write_text(json.dumps(e, indent=1, ensure_ascii=False))
+            target.write_text(json.dumps(e, indent=1, ensure_ascii=False), encoding="utf-8")
             if old and old != target:                  # the device got its name (or a new one)
                 old.unlink(missing_ok=True)
             self._files[ident] = target
@@ -137,7 +137,7 @@ class Config:
 
     def save(self) -> None:
         try:
-            self.path.write_text(json.dumps(self.data, indent=1))
+            self.path.write_text(json.dumps(self.data, indent=1), encoding="utf-8")
         except OSError:
             pass
 
@@ -151,7 +151,7 @@ def backup_dir() -> Path:
 def write_backup(device_uid: str, text: str) -> Path:
     safe = "".join(c if c.isalnum() else "_" for c in device_uid)
     p = backup_dir() / f"{safe}-{time.strftime('%Y%m%d-%H%M%S')}.json"
-    p.write_text(text)
+    p.write_text(text, encoding="utf-8")
     return p
 
 
@@ -164,12 +164,12 @@ def export_config(cfg: "Config", path: Path) -> None:
     for ident, e in cfg._dev.items():                  # device files are exported as "<prefix>:<id>" keys
         for pre, value in e["settings"].items():
             data[f"{pre}:{ident}"] = value
-    path.write_text(json.dumps({"pylogi_config": 1, "data": data}, indent=1))
+    path.write_text(json.dumps({"pylogi_config": 1, "data": data}, indent=1), encoding="utf-8")
 
 
 def import_config(cfg: "Config", path: Path) -> int:
     """Merge an exported file into the configuration; returns the number of keys imported."""
-    raw = json.loads(path.read_text())
+    raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict) or raw.get("pylogi_config") != 1 or not isinstance(raw.get("data"), dict):
         raise ValueError("not a pyLogi configuration file")
     for k, v in raw["data"].items():

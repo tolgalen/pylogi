@@ -285,14 +285,14 @@ class LightingCard(Card):
     def _save_preset(self) -> None:
         f, _ = QFileDialog.getSaveFileName(self, tr("Save preset…"), "keys.json", "JSON (*.json)")
         if f:
-            Path(f).write_text(json.dumps({str(k): list(v) for k, v in self.kb.colors.items()}))
+            Path(f).write_text(json.dumps({str(k): list(v) for k, v in self.kb.colors.items()}), encoding="utf-8")
 
     def _load_preset(self) -> None:
         f, _ = QFileDialog.getOpenFileName(self, tr("Load preset…"), "", "JSON (*.json)")
         if not f:
             return
         try:
-            cols = {int(k): tuple(v) for k, v in json.loads(Path(f).read_text()).items()}
+            cols = {int(k): tuple(v) for k, v in json.loads(Path(f).read_text(encoding="utf-8")).items()}
         except (OSError, ValueError) as e:
             QMessageBox.warning(self, tr("Error"), str(e))
             return

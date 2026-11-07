@@ -299,6 +299,7 @@ class ConfigIoTests(unittest.TestCase):
 
 
 class DesktopTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: .desktop entries")
     def test_launcher_autostart_and_extension(self):
         home = tempfile.mkdtemp()
         env = {"XDG_DATA_HOME": f"{home}/data", "XDG_CONFIG_HOME": f"{home}/config"}

@@ -229,6 +229,8 @@ class MiscTests(unittest.TestCase):
         st.cfg.set("dev:" + dev.device_key(), {"remaps": {"86": 83}})
         self.assertEqual(st.remaps(dev), {86: 83})
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: /dev/uinput")
+
     def test_uinput_device_is_created_when_available(self):
         try:
             inj = A.UInputInjector("pyLogi unit test")

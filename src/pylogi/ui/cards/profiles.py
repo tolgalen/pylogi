@@ -215,14 +215,14 @@ class ProfilesCard(Card):
         self._collect()
         f, _ = QFileDialog.getSaveFileName(self, tr("Export…"), "profiles.json", "JSON (*.json)")
         if f and self.profiles:
-            Path(f).write_text(profiles_to_json(self.profiles))
+            Path(f).write_text(profiles_to_json(self.profiles), encoding="utf-8")
 
     def _import(self) -> None:
         f, _ = QFileDialog.getOpenFileName(self, tr("Import…"), "", "JSON (*.json)")
         if not f:
             return
         try:
-            data = json.loads(Path(f).read_text())
+            data = json.loads(Path(f).read_text(encoding="utf-8"))
             for entry, p in zip(data, self.profiles):
                 prof = parse_profile(p.index, p.sector, p.enabled,
                                      bytes.fromhex(entry["raw"]))

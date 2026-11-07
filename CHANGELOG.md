@@ -23,7 +23,9 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ### Fixed
 - `Channel.close()` could close the HID handle while the listener thread was still reading from it.
-- Files opened without an explicit encoding (`uevent`, HID trace).
+- Files opened without an explicit encoding (`uevent`, HID trace, and every JSON / desktop-entry read and write): on Windows
+  they used cp1252 and broke with accented text.
+- Windows: `fcntl` (Linux-only) was imported at module level by `core/actions.py` and `core/webcam.py`, so the app could not start.
 
 ## [0.2.0]
 

@@ -77,7 +77,7 @@ def save(dev: Device, snap: dict[str, Any] | None = None, tag: str = "full") -> 
     snap = snap or snapshot(dev)
     safe = "".join(c if c.isalnum() else "_" for c in dev.device_key())
     p = backup_dir() / f"{tag}-{safe}-{time.strftime('%Y%m%d-%H%M%S')}.json"
-    p.write_text(json.dumps(snap, indent=1))
+    p.write_text(json.dumps(snap, indent=1), encoding="utf-8")
     return p
 
 

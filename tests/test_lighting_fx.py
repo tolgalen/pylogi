@@ -112,6 +112,8 @@ class KeyPressTests(unittest.TestCase):
         self.assertEqual(fx._event_nodes("Nothing 123", str(root)), [])
         self.assertEqual(fx._event_nodes("G915", str(root / "missing")), [])
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: mkfifo")
+
     def test_reading_key_presses_from_a_node(self):
         fifo = Path(tempfile.mkdtemp()) / "event0"
         os.mkfifo(fifo)
@@ -129,6 +131,8 @@ class KeyPressTests(unittest.TestCase):
         os.close(fd)
         src.stop()
         self.assertEqual(got, [A, SPACE])
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: O_NONBLOCK")
 
     def test_missing_permission_is_reported(self):
         src = fx.KeyPressSource("G915")

@@ -136,6 +136,8 @@ class ScanSignalTests(unittest.TestCase):
             m.scan_once()
         self.assertEqual((got, changed), ([1], []))                  # no devices: no "changed", but the scan is done
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: .desktop entries")
+
     def test_launcher_installs_a_png_too(self):
         import tempfile
         from pylogi.core import desktop

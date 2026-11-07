@@ -27,7 +27,7 @@ def running_managers(proc: Path = Path("/proc")) -> list[str]:
         if not d.name.isdigit():
             continue
         try:
-            comm = (d / "comm").read_text().strip().lower()
+            comm = (d / "comm").read_text(encoding="utf-8").strip().lower()
         except OSError:
             continue
         name = MANAGERS.get(comm) or (MANAGERS.get(comm.replace(".py", "")) if comm.endswith(".py") else None)

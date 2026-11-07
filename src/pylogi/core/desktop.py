@@ -73,7 +73,7 @@ def install_launcher() -> list[Path]:
     apps.mkdir(parents=True, exist_ok=True)
     icons.mkdir(parents=True, exist_ok=True)
     entry, icon = apps / "pylogi.desktop", icons / "pylogi.svg"
-    entry.write_text(_desktop_entry())
+    entry.write_text(_desktop_entry(), encoding="utf-8")
     shutil.copyfile(DATA / "pylogi.svg", icon)
     files = [entry, icon]
     png = DATA / "icons" / "pylogi-256.png"
@@ -122,7 +122,7 @@ def set_autostart(on: bool) -> None:
         _make_shortcut(p, "--minimized", minimized=True)
     elif on:
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(_desktop_entry(" --minimized") + "X-GNOME-Autostart-enabled=true\n")
+        p.write_text(_desktop_entry(" --minimized") + "X-GNOME-Autostart-enabled=true\n", encoding="utf-8")
     else:
         p.unlink(missing_ok=True)
 

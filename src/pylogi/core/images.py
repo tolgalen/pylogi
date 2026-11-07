@@ -206,7 +206,7 @@ class ImageProvider(QObject):
             except (OSError, ValueError):
                 if not p.exists():
                     raise
-        return json.loads(p.read_text())["devices"]
+        return json.loads(p.read_text(encoding="utf-8"))["devices"]
 
     def _resolve(self, name: str, kind: str, ids: list[str]) -> tuple[str, dict]:
         if self._index is None:
@@ -281,10 +281,10 @@ class ImageProvider(QObject):
     def _work_layout(self, sig: str, name: str, kind: str, ids: list[str]) -> None:
         try:
             key, entry = self._resolve(name, kind, ids)
-            manifest = json.loads(self._fetch_file(key, entry, "manifest.json").read_text())
+            manifest = json.loads(self._fetch_file(key, entry, "manifest.json").read_text(encoding="utf-8"))
             res = {r["key"]: r["src"] for r in manifest["devices"][0]["resources"]}
             png = self._fetch_file(key, entry, res["device_buttons_image"])
-            meta = json.loads(self._fetch_file(key, entry, res["image_metadata"]).read_text())
+            meta = json.loads(self._fetch_file(key, entry, res["image_metadata"]).read_text(encoding="utf-8"))
             slots = parse_button_slots(meta)
             self._layouts[sig] = (str(png), slots) if slots else None
         except Exception:

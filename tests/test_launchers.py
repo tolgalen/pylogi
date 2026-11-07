@@ -30,6 +30,9 @@ def system_python():
     return None
 
 
+@unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: pylogi.sh")
+
+
 class ShellLauncherTests(unittest.TestCase):
     def run_sh(self, *args, venv, **env):
         full = {**os.environ, "PYLOGI_VENV": str(venv), "QT_QPA_PLATFORM": "offscreen", **env}
@@ -181,6 +184,7 @@ class RequirementsTests(unittest.TestCase):
 
 
 class DesktopIntegrationTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux only: .desktop entries")
     def test_entries_start_the_launcher_not_the_system_python(self):
         home = tempfile.mkdtemp()
         env = {"XDG_DATA_HOME": f"{home}/data", "XDG_CONFIG_HOME": f"{home}/config", "PYLOGI_LAUNCHER": "/opt/pyLogi/pylogi.sh"}
