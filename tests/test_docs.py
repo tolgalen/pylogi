@@ -205,7 +205,8 @@ class HelpPdfTests(unittest.TestCase):
             html = doc.defaultStyleSheet()
             self.assertIn("color: #111", html)
             self.assertNotIn(theme.BG, html)
-            self.assertIn("pyLogi 0.2.0", doc.toPlainText()[:200])
+            from pylogi import __version__
+            self.assertIn(f"pyLogi {__version__}", doc.toPlainText()[:200])
         finally:
             theme.apply(app, "dark", "default")
 

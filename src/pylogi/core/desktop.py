@@ -28,7 +28,7 @@ def _desktop_entry(extra: str = "") -> str:
     return ("[Desktop Entry]\nType=Application\nName=pyLogi\n"
             "Comment=Manage Logitech mice, keyboards and webcams\n"
             f"Exec={_exec()}{extra}\nIcon=pylogi\nTerminal=false\n"
-            "Categories=Settings;HardwareSettings;Utility;\nStartupWMClass=pylogi\n")
+            "Categories=Settings;HardwareSettings;\nStartupWMClass=pylogi\n")
 
 
 def _windows() -> bool:

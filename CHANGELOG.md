@@ -5,6 +5,8 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-07
+
 ### Added
 - Macros: a new button action that runs a script of steps (`key`, `text`, `media`, `click`, `scroll`, `run`, `wait`, repeats
   with `3x`), validated line by line in the editor (`core/macros.py`).
@@ -28,6 +30,7 @@ the release workflow copies the section of the tagged version into the GitHub re
 - `build_rpm.py` warns when the working tree has changes that are not in `HEAD` (the RPM is built from `HEAD`).
 
 ### Fixed
+- Desktop entries no longer list two main categories (`Utility` removed); `desktop-file-validate` is clean.
 - `Channel.close()` could close the HID handle while the listener thread was still reading from it.
 - Files opened without an explicit encoding (`uevent`, HID trace, and every JSON / desktop-entry read and write): on Windows
   they used cp1252 and broke with accented text.

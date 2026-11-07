@@ -3,7 +3,7 @@
 #
 # Fedora package (noarch): pyLogi runs on the distribution's own PySide6.
 # Build:  python scripts/build_rpm.py        (RPM and SRPM end up in ./dist)
-%{!?pylogi_version: %global pylogi_version 0.2.0}
+%{!?pylogi_version: %global pylogi_version 0.3.0}
 
 Name:           pylogi
 Version:        %{pylogi_version}
@@ -63,7 +63,7 @@ Comment=Manage Logitech mice, keyboards and webcams
 Exec=pylogi
 Icon=pylogi
 Terminal=false
-Categories=Settings;HardwareSettings;Utility;
+Categories=Settings;HardwareSettings;
 StartupWMClass=pylogi
 EOF
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications pylogi.desktop
@@ -88,5 +88,9 @@ udevadm trigger --subsystem-match=hidraw --subsystem-match=misc >/dev/null 2>&1 
 %{_udevrulesdir}/42-pylogi.rules
 
 %changelog
+* Sat Nov 07 2026 pyLogi contributors <candion@gmail.com> - 0.3.0-1
+- Macros, gestures, thumb wheel; input injection for Windows and macOS (unverified on hardware)
+- UTF-8 for every text file, listener-thread shutdown fix, safer image downloads
+
 * Sat Nov 07 2026 pyLogi contributors <candion@gmail.com> - 0.2.0-1
 - Fedora package: noarch, on the distribution's PySide6; udev rules, menu entry and icons included

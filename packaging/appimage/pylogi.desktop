@@ -4,5 +4,5 @@ Name=pyLogi
 Comment=Manage Logitech mice, keyboards and webcams
 Exec=pylogi
 Icon=pylogi
-Categories=Utility;Settings;HardwareSettings;
+Categories=Settings;HardwareSettings;
 Terminal=false
