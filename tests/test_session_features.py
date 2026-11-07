@@ -186,7 +186,7 @@ class WindowTests(unittest.TestCase):
         c = cfg()
         w = self.window(c)
         w.show()
-        w.resize(640, 480)
+        w.resize(720, 480)
         app.processEvents()
         w._save_geometry()
         self.assertEqual(c.get("window_geometry", ""), "")             # off: nothing stored
@@ -194,7 +194,7 @@ class WindowTests(unittest.TestCase):
         w._save_geometry()
         self.assertTrue(c.get("window_geometry"))
         again = self.window(c)
-        self.assertEqual((again.width(), again.height()), (640, 480))
+        self.assertEqual((again.width(), again.height()), (720, 480))
 
     def test_toggle_and_remote_messages(self):
         w = self.window()
