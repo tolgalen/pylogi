@@ -5,6 +5,9 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+### Changed
+- The "Offline" notice on the device page is drawn in red (text and border), in every theme.
+
 ## [0.3.0] - 2026-11-07
 
 ### Added

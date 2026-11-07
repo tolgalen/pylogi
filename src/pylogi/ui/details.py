@@ -49,6 +49,7 @@ def status_pill(dev: Device) -> QLabel:
     pill = QLabel(f"{dot} " + (tr("Connected") if dev.online else tr("Offline")))
     pill.setTextFormat(Qt.RichText)
     pill.setObjectName("pill")
+    pill.setProperty("offline", not dev.online)          # red in the style sheet when the device has no connection
     return pill
 
 

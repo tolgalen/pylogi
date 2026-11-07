@@ -467,3 +467,40 @@ class FeatureUiTests(unittest.TestCase):
         card._set_thumb()
         self.assertEqual(st.thumb(dev), ("zoom", True))
         self.assertEqual(dev.thumb(), (True, True))
+
+
+class OfflinePill(unittest.TestCase):
+    @staticmethod
+    def _red_pixels(widget) -> int:
+        img = widget.grab().toImage()
+        n = 0
+        for y in range(img.height()):
+            for x in range(img.width()):
+                c = img.pixelColor(x, y)
+                if c.red() > c.green() + 60 and c.red() > c.blue() + 60:
+                    n += 1
+        return n
+
+    def test_no_connection_notice_is_red_and_connected_is_not(self):
+        from PySide6.QtWidgets import QApplication
+
+        from pylogi.core.demo import DemoManager
+        from pylogi.ui import theme
+        from pylogi.ui.details import status_pill
+        app = QApplication.instance() or QApplication([])
+        dev = DemoManager().devices[0]
+        for mode in ("dark", "light"):
+            theme.apply(app, mode, "default")
+            dev.online = True
+            ok = status_pill(dev)
+            ok.show()
+            ok.ensurePolished()
+            dev.online = False
+            off = status_pill(dev)
+            off.show()
+            off.ensurePolished()
+            self.assertFalse(ok.property("offline"))
+            self.assertTrue(off.property("offline"))
+            self.assertGreater(self._red_pixels(off), 20, mode)          # the border and the text are red
+            self.assertLess(self._red_pixels(ok), self._red_pixels(off), mode)
+        theme.apply(app, "dark", "default")

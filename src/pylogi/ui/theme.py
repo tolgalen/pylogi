@@ -189,6 +189,7 @@ QFrame#devcard[offline="true"] {{ border-color: {BAD}; }}
 QFrame#devcard[offline="true"]:hover {{ border-color: {BAD_HI}; }}
 QLabel#pill {{ border: 1px solid {BORDER}; border-radius: 10px; padding: 1px 9px; color: {MUTED};
     background: {PANEL}; font-size: 12px; }}
+QLabel#pill[offline="true"] {{ color: {BAD_HI}; border-color: {BAD}; }}
 QLabel#name {{ font-size: 15px; font-weight: 500; }}
 QLabel#title {{ font-size: 22px; font-weight: 500; }}
 QToolButton {{ background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 3px; }}
