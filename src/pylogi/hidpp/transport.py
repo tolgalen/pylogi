@@ -98,7 +98,7 @@ def open_transport(info: HidInfo) -> Transport:
 def _read_uevent(path: str) -> dict[str, str]:
     out: dict[str, str] = {}
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8", errors="replace") as f:
             for line in f:
                 if "=" in line:
                     k, v = line.rstrip("\n").split("=", 1)

@@ -123,6 +123,15 @@ PyInstaller (`packaging/pyinstaller/pylogi.spec`) into `dist/`: a `.tar.gz` (Lin
 exports the help. Not verified here: the AppImage, the Windows installer and any macOS build. A package cannot install the
 udev rules: Linux users still need `packaging/42-pylogi.rules` (see Installation).
 
+### Fedora (RPM)
+
+`python scripts/build_rpm.py` builds a `noarch` RPM and an SRPM into `dist/` from `packaging/rpm/pylogi.spec` (needs
+`rpm-build`; `sudo dnf builddep packaging/rpm/pylogi.spec` installs the rest; the sources come from `git archive HEAD`).
+It runs on Fedora's own `python3-pyside6` instead of bundling Qt, and installs the `pylogi` command, the menu entry,
+the icons and the udev rules (`/usr/lib/udev/rules.d/42-pylogi.rules`), so no extra step is needed:
+`sudo dnf install dist/pylogi-<version>-1.fc45.noarch.rpm`. Built and checked on Fedora 45 (file list, dependencies, the
+package imports from the extracted tree, the desktop file validates); not installed with `dnf` here.
+
 ## Using pyLogi
 
 The complete manual is inside the application (**F1**, or the **?** button): every screen, every setting, every

@@ -13,7 +13,7 @@ _t0 = 0.0
 
 def enable(path: str) -> None:
     global _file, _t0
-    _file = open(path, "a", buffering=1)
+    _file = open(path, "a", buffering=1, encoding="utf-8")
     _t0 = time.monotonic()
     _file.write(f"# pyLogi HID trace {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
