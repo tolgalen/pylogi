@@ -307,7 +307,7 @@ profiles.
 ## Development
 
 ```bash
-python -I -m unittest discover -s tests      # ~120 tests, headless (QT_QPA_PLATFORM=offscreen)
+python -I scripts/run_tests.py                # ~250 tests, headless (QT_QPA_PLATFORM=offscreen)
 python scripts/lint.py                       # unused imports
 python scripts/i18n_tool.py check            # translations complete, placeholders intact
 python scripts/gen_docs.py                   # regenerate the tables in this README and THIRD_PARTY.md

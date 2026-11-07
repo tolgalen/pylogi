@@ -20,5 +20,5 @@ jobs:
       - run: python scripts/lint.py
       - run: python scripts/i18n_tool.py check
       - run: python scripts/gen_docs.py --check
-      - run: python -I -m unittest discover -s tests
+      - run: python -I scripts/run_tests.py
       - run: python -m build --wheel

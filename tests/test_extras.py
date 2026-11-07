@@ -382,6 +382,7 @@ class UiExtrasTests(unittest.TestCase):
         from PySide6.QtCore import Qt
         from PySide6.QtGui import QKeyEvent
         from PySide6.QtCore import QEvent
+        from PySide6.QtWidgets import QApplication
         from pylogi.ui.home import DeviceCard
         dev = DemoManager().devices[0]
         card = DeviceCard(dev, None)
@@ -392,6 +393,8 @@ class UiExtrasTests(unittest.TestCase):
         for key in (Qt.Key_Return, Qt.Key_Space):
             card.keyPressEvent(QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier))
         self.assertEqual(got, [dev, dev])
+        card.deleteLater()                     # an undeleted top-level widget crashes the interpreter at exit
+        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
 
     def test_settings_dialog_builds_with_new_controls(self):
         from pylogi.ui.main_window import MainWindow
