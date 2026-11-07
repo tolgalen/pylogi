@@ -12,15 +12,16 @@ It talks to the devices directly with the HID++ protocol and to webcams through 
 ## Contents
 
 1. [Features](#features)
-2. [Installation](#installation)
-3. [Using pyLogi](#using-pylogi)
-4. [Command line](#command-line)
-5. [Architecture](#architecture)
-6. [How it works](#how-it-works)
-7. [Data, privacy and safety](#data-privacy-and-safety)
-8. [Verified on hardware, and limits](#verified-on-hardware-and-limits)
-9. [Development](#development)
-10. [Licence and credits](#licence-and-credits)
+2. [Screenshots](#screenshots)
+3. [Installation](#installation)
+4. [Using pyLogi](#using-pylogi)
+5. [Command line](#command-line)
+6. [Architecture](#architecture)
+7. [How it works](#how-it-works)
+8. [Data, privacy and safety](#data-privacy-and-safety)
+9. [Verified on hardware, and limits](#verified-on-hardware-and-limits)
+10. [Development](#development)
+11. [Licence and credits](#licence-and-credits)
 
 ## Features
 
@@ -39,6 +40,31 @@ It talks to the devices directly with the HID++ protocol and to webcams through 
 | Removing devices | Unpair, remove the Bluetooth pairing, forget settings, hide, or delete from pyLogi (leaves no trace). |
 | Safety | Full device snapshots (`--backup`), write verification (`--self-test`), HID++ frame trace (`--trace-hid`), warning when another manager (OpenLogi, Solaar, ...) runs. |
 | Automation | `--list --json`, `--get`, `--set` on the command line; export / import of the whole configuration. |
+
+## Screenshots
+
+Captured from the running application with real devices (a Bolt mouse, a LIGHTSPEED keyboard and a USB webcam).
+
+**Devices.** Every detected device is a card with its connection (receiver slot or cable), battery and kind. This
+screen is fed by the discovery thread, so devices appear, go offline and disappear by themselves
+(see [How it works](#how-it-works)).
+
+![Devices screen](docs/screenshots/home.png)
+
+**Mouse.** The sidebar only lists the sections the device reports through its HID++ feature table. Buttons can be
+remapped inside the device or turned into software actions, per profile and per application.
+
+![Mouse buttons](docs/screenshots/mouse-buttons.png)
+
+![Mouse pointer](docs/screenshots/mouse-pointer.png)
+
+**Keyboard.** Per-key RGB lighting with layout detection, effects, zones and saved colour presets.
+
+![Keyboard lighting](docs/screenshots/keyboard-lighting.png)
+
+**Webcam.** Standard V4L2 controls grouped by role, with a live preview and presets (Default, Streaming, Video call...).
+
+![Webcam controls](docs/screenshots/webcam.png)
 
 ## Installation
 
