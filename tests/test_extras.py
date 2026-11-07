@@ -21,7 +21,6 @@ from pylogi.core.config import Config, export_config, import_config  # noqa: E40
 from pylogi.core.demo import DemoManager  # noqa: E402
 from pylogi.core.history import BatteryHistory  # noqa: E402
 from pylogi.core.settings import DeviceSettings  # noqa: E402
-from pylogi.hidpp.constants import RECEIVER_NUMBER  # noqa: E402
 from pylogi.hidpp.protocol import Channel  # noqa: E402
 from pylogi.hidpp.receiver import Receiver  # noqa: E402
 from pylogi.hidpp.transport import Transport  # noqa: E402

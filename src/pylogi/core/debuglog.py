@@ -15,6 +15,7 @@ import threading
 import time
 import traceback
 from pathlib import Path
+from typing import Any
 
 from .. import __version__
 from .config import config_dir
@@ -40,7 +41,7 @@ class DebugLog:
         self._file = None
         self._lock = threading.Lock()
         self._t0 = time.monotonic()
-        self._last: dict[str, object] = {}
+        self._last: dict[str, Any] = {}
         self._old_hooks = None
 
     @property

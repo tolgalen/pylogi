@@ -20,6 +20,7 @@ Binding = JSON dict, keyed by button (control id) inside a profile:
 """
 from __future__ import annotations
 
+from . import debuglog as _debuglog
 import fcntl
 import os
 import shlex
@@ -287,8 +288,8 @@ class ActionEngine:
         for dev in list(self._devs.values()):
             try:
                 self.configure(dev)
-            except Exception:
-                pass
+            except Exception as e:
+                _debuglog.log("error", f"re-applying a profile: {e!r}")
         if self.on_profile_change:
             self.on_profile_change(app)
 
@@ -327,8 +328,8 @@ class ActionEngine:
             divert, remap = self._orig.pop((dev.uid, cid), (False, 0))     # back to what was there before
             try:
                 ft.set_control_reporting(dev.dev, cid, divert, remap)
-            except Exception:
-                pass
+            except Exception as e:
+                _debuglog.log("error", f"restoring a control: {e!r}")
         self.unregister(dev)
 
     def register(self, dev) -> None:
@@ -420,10 +421,9 @@ class ActionEngine:
         try:
             info = dev.dpi()
             vals = info.values
-            i = min(range(len(vals)), key=lambda k: abs(vals[k] - info.current))
             presets = [v for v in (400, 800, 1200, 1600, 2400, 3200, 4000, 6400, 8000) if v in vals] or vals[::8]
             nxt = [v for v in presets if v > info.current] if direction > 0 else [v for v in presets if v < info.current]
             new = (min(nxt) if direction > 0 else max(nxt)) if nxt else (presets[0] if direction > 0 else presets[-1])
             dev.set_dpi(new)
-        except Exception:
-            pass
+        except Exception as e:
+            _debuglog.log("error", f"stepping DPI: {e!r}")

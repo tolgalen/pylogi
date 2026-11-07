@@ -192,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         print("pyLogi is already running; showing its window.", file=sys.stderr)
         return 0
     holder: dict = {}
-    instance = single_instance.InstanceServer(          # listening from the start, even during the splash
+    instance = single_instance.InstanceServer(  # noqa: F841 - listens from the start (even during the splash); keep it referenced
         lambda m: holder["win"].remote(m) if "win" in holder else None, args.demo)
     from .ui import theme
     from .ui.main_window import MainWindow

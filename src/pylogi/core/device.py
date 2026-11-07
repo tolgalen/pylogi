@@ -199,8 +199,8 @@ class HidppDevice(Device):
         if not was_online and self.on_online:      # (re)connected: restore saved settings
             try:
                 self.on_online(self)
-            except Exception:
-                pass
+            except Exception as e:
+                debuglog.log("error", f"on_online callback: {e!r}")
         now = time.monotonic()
         if BATTERY in self.caps and (force or not was_online or self.battery is None
                                      or now - self._battery_t >= BATTERY_EVERY):

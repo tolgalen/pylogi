@@ -51,7 +51,7 @@ def _make_shortcut(lnk: Path, args: str = "", minimized: bool = False) -> None:
     script = ("$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{lnk}');$s.TargetPath='{target}';"
               "$s.Arguments='{args}';$s.WorkingDirectory='{wd}';$s.IconLocation='{icon}';"
               "$s.Description='pyLogi';$s.WindowStyle={style};$s.Save()").format(
-        lnk=q(lnk), target=q(launcher), args=q(args), wd=q(Path(launcher).parent), icon=q(DATA / "pylogi.ico"),
+        lnk=q(str(lnk)), target=q(launcher), args=q(args), wd=q(str(Path(launcher).parent)), icon=q(str(DATA / "pylogi.ico")),
         style=7 if minimized else 1)
     lnk.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script], check=True,

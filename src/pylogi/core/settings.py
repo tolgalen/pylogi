@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import debuglog as _debuglog
 from .config import Config
 from .device import Device
 
@@ -159,8 +160,8 @@ class DeviceSettings:
         for cid in self.all_cids(dev):
             try:
                 dev.remap_control(cid, 0)
-            except Exception:
-                pass
+            except Exception as e:
+                _debuglog.log("error", f"clearing a remap: {e!r}")
 
     def set_managed(self, dev: Device, on: bool) -> None:
         """Turning management off restores default functions and forgets the saved values."""

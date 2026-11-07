@@ -7,6 +7,7 @@ pyLogi has to keep running for them to play; stopping one hands the keys back to
 `frame()` is pure (time in, colours out) and is what the tests exercise."""
 from __future__ import annotations
 
+from . import debuglog as _debuglog
 import colorsys
 import math
 import os
@@ -351,8 +352,8 @@ class Hub:
             r.stop()
             try:
                 r.dev.reset_lighting()
-            except Exception:
-                pass
+            except Exception as e:
+                _debuglog.log("error", f"resetting lighting: {e!r}")
         self.runners.clear()
 
 

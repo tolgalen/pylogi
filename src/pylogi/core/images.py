@@ -111,13 +111,20 @@ def parse_button_slots(meta: dict) -> list[dict]:
     return out
 
 
-def _http_get(path: str, timeout: float = 20) -> bytes:
+MAX_DOWNLOAD = 8 * 1024 * 1024          # no catalog file is anywhere near this; refuse anything bigger
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
+def _http_get(path: str, timeout: float = 20, limit: int = MAX_DOWNLOAD) -> bytes:
     last: Exception = OSError("no mirror")
     for base in BASES:
         try:
             req = urllib.request.Request(f"{base}/{path}", headers={"User-Agent": "pyLogi"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read()
+                data = r.read(limit + 1)
+            if len(data) > limit:
+                raise OSError(f"response larger than {limit} bytes")
+            return data
         except Exception as e:  # network errors: try the next mirror
             last = e
     raise OSError(str(last))
@@ -222,6 +229,8 @@ class ImageProvider(QObject):
         want = files[fname].get("sha256")
         if want and hashlib.sha256(data).hexdigest() != want:
             raise ValueError("checksum mismatch")
+        if not want and fname.endswith(".png") and not data.startswith(PNG_MAGIC):
+            raise ValueError("not a PNG image")
         tmp = dest.with_suffix(dest.suffix + ".part")
         tmp.write_bytes(data)
         tmp.replace(dest)

@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
+from . import debuglog as _debuglog
 from . import backup
 from .device import Device
 
@@ -193,8 +194,8 @@ def t_key_colors(dev: Device) -> str:
         try:
             dev.set_profile_host_mode(True)
             dev.set_profile_host_mode(False)
-        except Exception:
-            pass
+        except Exception as e:
+            _debuglog.log("error", f"returning LEDs to the onboard profile: {e!r}")
     raise Check(UNCONFIRMED, "per-key colour frame accepted without error (A=red B=green C=blue for a moment); "
                              "LEDs handed back to the onboard profile - confirm visually")
 

@@ -464,7 +464,6 @@ class ActiveProfileTests(unittest.TestCase):
         self.assertEqual(sets[0][4:6], b"\x00\x03")                     # big-endian sector number
 
     def _card(self, index=1):
-        import tempfile
         from pylogi.core.demo import DemoManager
         from pylogi.ui.cards import ProfilesCard
         dev = DemoManager().devices[index]

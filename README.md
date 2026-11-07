@@ -316,8 +316,9 @@ profiles.
 ## Development
 
 ```bash
-python -I scripts/run_tests.py                # ~250 tests, headless (QT_QPA_PLATFORM=offscreen)
+python -I scripts/run_tests.py                # ~260 tests, headless (QT_QPA_PLATFORM=offscreen)
 python scripts/lint.py                       # unused imports
+ruff check . && mypy                         # lint and types (pip install ruff mypy)
 python scripts/i18n_tool.py check            # translations complete, placeholders intact
 python scripts/gen_docs.py                   # regenerate the tables in this README and THIRD_PARTY.md
 python scripts/make_assets.py                # icons, .ico and splash preview from data/pylogi.svg
@@ -330,7 +331,9 @@ python run.py --demo                         # simulated devices, no hardware ne
 * **Themes:** JSON files in `src/pylogi/themes/` (or the user's `themes/` folder) override any colour token.
 * **Conventions:** code comments and docstrings are in English; every Python file carries an SPDX licence header
   (checked by the tests).
-* **Continuous integration:** `.github/workflows/ci.yml` runs lint, translation check, tests and a wheel build.
+* **Continuous integration:** `.github/workflows/ci.yml` runs lint (ruff, mypy), translation check, tests with coverage on
+  Python 3.10-3.14, an informational Windows / macOS run, a wheel build and an RPM build on Fedora. Pushing a `vX.Y.Z` tag
+  runs `.github/workflows/release.yml` (bundles + RPM + GitHub release). See `CONTRIBUTING.md` and `CHANGELOG.md`.
 
 ## Licence and credits
 

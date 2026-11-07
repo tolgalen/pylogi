@@ -54,6 +54,9 @@ class Channel:
 
     def close(self) -> None:
         self._closed = True
+        th = self._listen_thread
+        if th is not None and th.is_alive() and th is not threading.current_thread():
+            th.join(timeout=0.5)         # the reader polls every 0.1 s; don't close the fd under its feet
         self.t.close()
 
     def _frame(self, devnum: int, header: int, params: bytes, long: bool) -> bytes:
@@ -123,8 +126,9 @@ class Channel:
                     for fn in list(self._listeners):
                         try:
                             fn(self, m)
-                        except Exception:
-                            pass
+                        except Exception as e:      # a faulty listener must not stop the reader thread
+                            from ..core import debuglog
+                            debuglog.log("error", f"hidpp listener failed: {e!r}")
             except OSError:
                 return
 
@@ -232,6 +236,7 @@ class Hidpp20Device:
                 if e.code != 8 or attempt == 5:        # 8 = BUSY: transient, try again shortly
                     raise
                 time.sleep(0.03 * (attempt + 1))
+        raise AssertionError("unreachable")        # the loop above always returns or raises
 
     def features(self) -> dict[int, int]:
         """Full feature table {feature_id: index} (cached)."""

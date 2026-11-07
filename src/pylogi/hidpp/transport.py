@@ -85,7 +85,7 @@ class HidapiTransport(Transport):
     def close(self) -> None:
         try:
             self.dev.close()
-        except Exception:
+        except Exception:  # noqa: S110 - closing a handle that may already be gone
             pass
 
 

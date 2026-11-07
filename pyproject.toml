@@ -29,3 +29,40 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 pylogi = ["locales/*.json", "themes/*.json", "data/*.svg", "data/LICENSE", "data/help/*.html", "data/*.ico", "data/*.png", "data/icons/*.png", "data/gnome-extension/*/*"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "S110"]
+ignore = ["E501", "E402", "E701", "E702", "E741", "B008", "B904", "UP007", "UP045", "UP037", "UP035", "UP006", "UP028", "UP031", "E731", "B905", "SIM105"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F841", "B007"]   # QApplication handles are kept alive on purpose
+"src/pylogi/ui/theme.py" = ["F821"]   # palette names are injected into the module globals at runtime
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/pylogi/core", "src/pylogi/hidpp"]
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
+follow_imports = "silent"
+# Devices are duck-typed on purpose (capabilities such as cam_controls / slot exist only on some classes)
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+# known baseline, to be tightened gradually: colour tuples, Qt enums, receiver device wiring
+module = ["pylogi.core.lighting_fx", "pylogi.hidpp.onboard", "pylogi.core.images", "pylogi.core.manager",
+          "pylogi.core.removal", "pylogi.core.actions"]
+ignore_errors = true
+
+[tool.coverage.run]
+source = ["src/pylogi"]
+branch = true
+
+[tool.coverage.report]
+show_missing = false
+skip_empty = true
