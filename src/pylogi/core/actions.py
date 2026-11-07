@@ -16,6 +16,9 @@ Binding = JSON dict, keyed by button (control id) inside a profile:
   {"type": "text",    "text": "hello"}                  typed with a US-layout key map
   {"type": "command", "cmd": "firefox --new-window"}   run a program (no shell)
   {"type": "dpi",     "mode": "next"|"prev"}           cycle the DPI value
+  {"type": "macro",   "script": "key ctrl+c\nwait 100"} a sequence of the actions above (see core.macros)
+  {"type": "gesture", "threshold": 50, "click": "<script>", "up": ..., "down": ..., "left": ..., "right": ...}
+                                                        hold the button and move the mouse; each direction runs a macro script
   {"type": "none"}                                      button disabled
 """
 from __future__ import annotations
@@ -25,6 +28,7 @@ import shlex
 import shutil
 import struct
 import subprocess
+import sys
 import threading
 import time
 from typing import Callable, Optional
@@ -66,9 +70,16 @@ ACTION_TYPES = [  # key, label (translated by the UI)
     ("default", N_("Default")), ("remap", N_("Another button")), ("key", N_("Keyboard shortcut")),
     ("media", N_("Media key")), ("mouse", N_("Mouse click")), ("scroll", N_("Scroll")),
     ("text", N_("Type text")), ("command", N_("Run command")), ("dpi", N_("Change DPI")),
-    ("none", N_("Disabled")),
+    ("macro", N_("Macro")), ("gesture", N_("Gesture")), ("none", N_("Disabled")),
 ]
-NEEDS_DIVERT = {"key", "media", "mouse", "scroll", "text", "command", "dpi", "none"}
+NEEDS_DIVERT = {"key", "media", "mouse", "scroll", "text", "command", "dpi", "macro", "gesture", "none"}
+GESTURE_THRESHOLD = 50                  # mouse counts of movement that make a direction (not a click)
+GESTURE_DIRECTIONS = ("up", "down", "left", "right")
+
+# thumb wheel modes: how a diverted thumb wheel is used ("native" leaves it to the operating system)
+THUMB_MODES = [("native", N_("Horizontal scroll (system)")), ("hscroll", N_("Horizontal scroll (pyLogi)")),
+               ("zoom", N_("Zoom (Ctrl + scroll)")), ("volume", N_("Volume")), ("tabs", N_("Switch tabs"))]
+THUMB_STEP = 2                          # rotation counts per step (to be tuned per model)
 
 
 def char_keys(ch: str) -> tuple[int, int] | None:
@@ -105,6 +116,11 @@ def describe(b: dict | None) -> str:
         return b.get("cmd", "")[:24]
     if t == "dpi":
         return b.get("mode", "")
+    if t == "macro":
+        from . import macros
+        return macros.describe(b.get("script", ""))
+    if t == "gesture":
+        return "↑↓←→"
     return ""
 
 
@@ -167,6 +183,11 @@ class UInputInjector(Injector):
 
 
 def default_injector() -> Injector:
+    if not sys.platform.startswith("linux"):
+        from . import injectors                 # SendInput / Quartz; imported here: it needs this module's Injector
+        inj = injectors.platform_injector()
+        if inj is not None:
+            return inj
     try:
         return UInputInjector()
     except (OSError, AttributeError) as e:
@@ -268,6 +289,10 @@ class ActionEngine:
         self._stop = threading.Event()
         self._watcher: Optional[threading.Thread] = None
         self.on_profile_change: Callable[[Optional[str]], None] | None = None
+        self._gesture: dict[str, dict] = {}                         # uid -> {"cid", "dx", "dy"} while a gesture button is held
+        self._rawxy: set[tuple[str, int]] = set()                   # (uid, cid) whose raw-XY reporting we switched on
+        self._macros: set[int] = set()                              # ids of the macro scripts running (no overlapping runs)
+        self._thumb_acc: dict[str, int] = {}
 
     # -- profile watching ----------------------------------------------------------
     def start_watching(self) -> None:
@@ -276,7 +301,7 @@ class ActionEngine:
             self._watcher.start()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop.set()                  # also ends macros that are running
         self.injector.close()
 
     def _watch(self) -> None:
@@ -319,7 +344,17 @@ class ActionEngine:
             remap = b.get("cid", 0) if t == "remap" else 0
             if (dev.uid, cid) not in self._orig:       # remember the state we found (another manager may own it)
                 self._orig[(dev.uid, cid)] = ft.get_control_reporting(d, cid)
-            ft.set_control_reporting(d, cid, divert, remap)
+            raw_xy: bool | None = None
+            if t == "gesture":
+                raw_xy = True
+                self._rawxy.add((dev.uid, cid))
+            elif (dev.uid, cid) in self._rawxy:           # no longer a gesture button: stop the movement reports
+                raw_xy = False
+                self._rawxy.discard((dev.uid, cid))
+            if raw_xy is None:
+                ft.set_control_reporting(d, cid, divert, remap)
+            else:
+                ft.set_control_reporting(d, cid, divert, remap, raw_xy)
             need_listener |= divert
         if need_listener:
             self.register(dev)
@@ -331,7 +366,11 @@ class ActionEngine:
         for cid in self.settings.all_cids(dev):
             divert, remap = self._orig.pop((dev.uid, cid), (False, 0))     # back to what was there before
             try:
-                ft.set_control_reporting(dev.dev, cid, divert, remap)
+                if (dev.uid, cid) in self._rawxy:
+                    self._rawxy.discard((dev.uid, cid))
+                    ft.set_control_reporting(dev.dev, cid, divert, remap, False)
+                else:
+                    ft.set_control_reporting(dev.dev, cid, divert, remap)
             except Exception as e:
                 _debuglog.log("error", f"restoring a control: {e!r}")
         self.unregister(dev)
@@ -347,6 +386,16 @@ class ActionEngine:
         with self._lock:
             self._devs.pop((id(dev.dev.ch), dev.dev.devnum), None)
             self._held.pop(dev.uid, None)
+            self._gesture.pop(dev.uid, None)
+
+    def configure_thumb(self, dev) -> None:
+        """Put the thumb wheel in the mode saved for the device (diverted when pyLogi has to act on it)."""
+        if not getattr(dev, "online", False) or not dev.has("thumbwheel") or not self.settings.managed(dev):
+            return
+        mode, invert = self.settings.thumb(dev)
+        dev.set_thumb(diverted=mode != "native", invert=invert)
+        if mode != "native":
+            self.register(dev)
 
     # -- events -------------------------------------------------------------------------
     def _on_report(self, ch, report: bytes) -> None:
@@ -357,10 +406,61 @@ class ActionEngine:
         if dev is None:
             return
         idx = dev.dev.feature_index(F.REPROG_CONTROLS_V4)
-        cids = ft.parse_diverted(report, idx) if idx else None
-        if cids is None:
+        if idx:
+            xy = ft.parse_raw_xy(report, idx)
+            if xy is not None:
+                self.on_raw_xy(dev, *xy)
+                return
+            cids = ft.parse_diverted(report, idx)
+            if cids is not None:
+                self.handle_buttons(dev, set(cids))
+                return
+        if dev.has("thumbwheel"):
+            tidx = dev.dev.feature_index(F.THUMB_WHEEL)
+            rot = ft.parse_thumb(report, tidx) if tidx else None
+            if rot is not None:
+                self.on_thumb(dev, rot)
+
+    def on_raw_xy(self, dev, dx: int, dy: int) -> None:
+        g = self._gesture.get(dev.uid)
+        if g is not None:
+            g["dx"] += dx
+            g["dy"] += dy
+
+    @staticmethod
+    def gesture_direction(dx: int, dy: int, threshold: int = GESTURE_THRESHOLD) -> str:
+        """'click' when the movement stayed under the threshold, else up / down / left / right."""
+        if max(abs(dx), abs(dy)) < max(1, threshold):
+            return "click"
+        if abs(dx) >= abs(dy):
+            return "right" if dx > 0 else "left"
+        return "down" if dy > 0 else "up"
+
+    def on_thumb(self, dev, rotation: int) -> None:
+        mode, _inv = self.settings.thumb(dev)
+        if mode == "native" or not rotation:
             return
-        self.handle_buttons(dev, set(cids))
+        acc = self._thumb_acc.get(dev.uid, 0)
+        if acc and (acc > 0) != (rotation > 0):
+            acc = 0                                         # direction changed: start counting again
+        acc += rotation
+        steps, acc = divmod(abs(acc), THUMB_STEP)
+        sign = 1 if rotation > 0 else -1
+        self._thumb_acc[dev.uid] = sign * acc
+        inj = self.injector
+        for _ in range(min(steps, 20)):
+            if mode == "hscroll":
+                inj.rel(6, sign)
+            elif mode == "zoom":
+                inj.key(MODIFIERS["ctrl"], True)
+                inj.rel(8, sign)
+                inj.key(MODIFIERS["ctrl"], False)
+            elif mode == "volume":
+                inj.tap(MEDIA["Volume up" if sign > 0 else "Volume down"])
+            elif mode == "tabs":
+                inj.key(MODIFIERS["ctrl"], True)
+                inj.tap(KEYCODES["Page Down" if sign > 0 else "Page Up"])
+                inj.key(MODIFIERS["ctrl"], False)
 
     def handle_buttons(self, dev, now: set[int]) -> None:
         with self._lock:
@@ -370,12 +470,76 @@ class ActionEngine:
         bindings = self.settings.effective(dev, self.profile_for(dev))
         for cid in sorted(released):
             b = bindings.get(cid)
-            if b:
+            if b and b.get("type") == "gesture":
+                self._finish_gesture(dev, cid, b)
+            elif b:
                 self.perform(dev, b, False)
         for cid in sorted(pressed):
             b = bindings.get(cid)
-            if b:
+            if b and b.get("type") == "gesture":
+                self._gesture[dev.uid] = {"cid": cid, "dx": 0, "dy": 0}
+            elif b:
                 self.perform(dev, b, True)
+
+    def _finish_gesture(self, dev, cid: int, b: dict) -> None:
+        g = self._gesture.pop(dev.uid, None)
+        if g is None or g["cid"] != cid:
+            return
+        direction = self.gesture_direction(g["dx"], g["dy"], int(b.get("threshold", GESTURE_THRESHOLD)))
+        script = b.get(direction, "")
+        if script:
+            self.run_macro(dev, script)
+
+    # -- macros
+    def run_macro(self, dev, script: str) -> bool:
+        """Start a macro in its own thread (the HID reader must not wait for pauses). False if refused."""
+        from . import macros
+        try:
+            steps = macros.parse(script)
+        except macros.MacroError as e:
+            _debuglog.log("error", f"macro not run: {e}")
+            return False
+        key = hash(script)
+        with self._lock:
+            if not steps or key in self._macros:           # nothing to do / the same macro is still running
+                return False
+            self._macros.add(key)
+        threading.Thread(target=self._run_steps, args=(dev, steps, key), daemon=True, name="pylogi-macro").start()
+        return True
+
+    def _run_steps(self, dev, steps: list[dict], key: int) -> None:
+        try:
+            for s in steps:
+                for _ in range(s.get("times", 1)):
+                    if self._stop.is_set():
+                        return
+                    self._step(dev, s)
+        except Exception as e:
+            _debuglog.log("error", f"macro step failed: {e!r}")
+        finally:
+            with self._lock:
+                self._macros.discard(key)
+
+    def _step(self, dev, s: dict) -> None:
+        op = s["op"]
+        if op == "wait":
+            self._stop.wait(s["ms"] / 1000)
+        elif op == "key":
+            b = {"type": "key", "mods": s.get("mods", []), "key": s["key"]}
+            self.perform(dev, b, True)
+            self.perform(dev, b, False)
+        elif op == "click":
+            b = {"type": "mouse", "button": s["button"]}
+            self.perform(dev, b, True)
+            self.perform(dev, b, False)
+        elif op == "text":
+            self.perform(dev, {"type": "text", "text": s["text"]}, True)
+        elif op == "media":
+            self.perform(dev, {"type": "media", "name": s["name"]}, True)
+        elif op == "scroll":
+            self.perform(dev, {"type": "scroll", "dir": s["dir"]}, True)
+        elif op == "run":
+            self.perform(dev, {"type": "command", "cmd": s["cmd"]}, True)
 
     # -- actions ----------------------------------------------------------------------------
     def perform(self, dev, b: dict, down: bool) -> None:
@@ -420,6 +584,8 @@ class ActionEngine:
                 pass
         elif t == "dpi":
             self._step_dpi(dev, +1 if b.get("mode", "next") == "next" else -1)
+        elif t == "macro":
+            self.run_macro(dev, b.get("script", ""))
 
     def _step_dpi(self, dev, direction: int) -> None:
         try:

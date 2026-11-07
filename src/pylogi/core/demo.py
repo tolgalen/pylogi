@@ -82,6 +82,10 @@ class DemoDevice(Device):
     def set_wheel(self, hires=None, invert=None):
         h, i = self.wheel()
         self._wheel = (h if hires is None else hires, i if invert is None else invert)
+    def thumb(self): return getattr(self, "_thumb", (False, False))
+    def set_thumb(self, diverted=None, invert=None):
+        d, i = self.thumb()
+        self._thumb = (d if diverted is None else diverted, i if invert is None else invert)
     def fn_lock(self): return getattr(self, "_fn", False)
     def set_fn_lock(self, on): self._fn = on
     def dpi(self): return DpiInfo(list(range(200, 8001, 50)), self._dpi, 800)
@@ -144,7 +148,7 @@ class DemoManager(QObject):
     def __init__(self):
         super().__init__()
         mouse = DemoDevice("demo:mx", "MX Master 3S", "mouse", "Bolt",
-                           [BATTERY, EASYSWITCH, DPI, SMARTSHIFT, BUTTONS, "wheel"],
+                           [BATTERY, EASYSWITCH, DPI, SMARTSHIFT, BUTTONS, "wheel", "thumbwheel"],
                            "Bolt receiver", Battery(78, False))
         gmouse = DemoDevice("demo:g502", "G502 X LIGHTSPEED", "mouse", "Lightspeed",
                             [BATTERY, DPI, RATE, PROFILES, BUTTONS, ZONES],

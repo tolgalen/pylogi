@@ -45,6 +45,7 @@ class ReprogMouse(FakeDevice):
     def __init__(self):
         super().__init__()
         self.state = {cid: [False, 0] for cid, _ in self.CTRL}     # divert, remap
+        self.rawxy: dict[int, bool] = {}                            # raw-XY reporting set by the host
 
     def write(self, data):
         if data[2] == 7 and not self.silent:
@@ -64,6 +65,8 @@ class ReprogMouse(FakeDevice):
                 cid, flags, remap = struct.unpack(">HBH", params[:5])
                 if flags & 2:
                     self.state[cid][0] = bool(flags & 1)
+                if flags & 0x20:
+                    self.rawxy[cid] = bool(flags & 0x10)
                 self.state[cid][1] = 0 if remap == cid else remap
                 self.q.append(hdr + params[:5].ljust(16, b"\0"))
             return

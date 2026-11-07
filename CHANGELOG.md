@@ -6,6 +6,12 @@ the release workflow copies the section of the tagged version into the GitHub re
 ## [Unreleased]
 
 ### Added
+- Macros: a new button action that runs a script of steps (`key`, `text`, `media`, `click`, `scroll`, `run`, `wait`, repeats
+  with `3x`), validated line by line in the editor (`core/macros.py`).
+- Gestures: hold a button and move the mouse; each direction (and a plain click) runs its own macro. Uses the raw-XY
+  reporting of `REPROG_CONTROLS_V4`; not verified on hardware.
+- Thumb wheel (`THUMB_WHEEL`): invert it, or use it for horizontal scroll, zoom, volume or tab switching; not verified on hardware.
+- Input injection on Windows (`SendInput`) and macOS (Quartz, through ctypes) in `core/injectors.py`; not verified on real systems.
 - Fedora package: `python scripts/build_rpm.py` builds a `noarch` RPM and SRPM on the distribution's own PySide6
   (`packaging/rpm/pylogi.spec`), including menu entry, icons and udev rules.
 - Quality tooling: `ruff` and `mypy` (core and hidpp) configured in `pyproject.toml` and run in CI; coverage report in CI.

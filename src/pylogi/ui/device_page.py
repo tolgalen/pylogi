@@ -38,7 +38,8 @@ def _scroll(*cards: QWidget) -> QScrollArea:
 
 
 _TYPE_GLYPH = {"key": "keyboard", "media": "circle", "mouse": "mouse", "scroll": "list",
-               "text": "keyboard", "command": "gear", "dpi": "gauge", "none": "circle"}
+               "text": "keyboard", "command": "gear", "dpi": "gauge", "macro": "list", "gesture": "mouse",
+               "none": "circle"}
 
 
 class ButtonsPage(QWidget):
@@ -170,7 +171,8 @@ class ButtonsPage(QWidget):
                 "command": b.get("cmd", ""), "none": tr("Disabled"),
                 "mouse": tr(Inspector.MOUSE_LABELS.get(b.get("button", ""), "")),
                 "scroll": tr(Inspector.SCROLL_LABELS.get(b.get("dir", ""), "")),
-                "dpi": tr("Next DPI") if b.get("mode", "next") == "next" else tr("Previous DPI")}.get(t, "")
+                "dpi": tr("Next DPI") if b.get("mode", "next") == "next" else tr("Previous DPI"),
+                "macro": describe(b), "gesture": tr("Gesture")}.get(t, "")
         return text, _TYPE_GLYPH.get(t, "click")
 
     def _build(self) -> None:
@@ -212,7 +214,7 @@ class ButtonsPage(QWidget):
 # slow device reads each section needs; fetched off the UI thread before the page is built
 SECTION_READS = {
     "buttons": ["controls"],
-    "pointer": ["dpi", "smartshift", "report_rate", "wheel"],
+    "pointer": ["dpi", "smartshift", "report_rate", "wheel", "thumb"],
     "profiles": ["profiles", "profile_host_mode", "active_profile"],
     "lighting": ["zones", "backlight", "key_presence"],
     "webcam": ["cam_controls"],
@@ -285,7 +287,7 @@ class DevicePage(QWidget):
         out = []
         if dev.has("buttons") and dev.kind in ("mouse", "trackball", "touchpad", "presenter"):
             out.append("buttons")
-        if dev.has("dpi") or dev.has("smartshift") or dev.has("report_rate") or dev.has("wheel"):
+        if dev.has("dpi") or dev.has("smartshift") or dev.has("report_rate") or dev.has("wheel") or dev.has("thumbwheel"):
             out.append("pointer")
         if dev.has("profiles"):
             out.append("profiles")
@@ -350,7 +352,7 @@ class DevicePage(QWidget):
         if key == "buttons":
             return ButtonsPage(dev, self.images, self.settings)
         if key == "pointer":
-            return _scroll(PointerCard(dev, self.settings))
+            return _scroll(PointerCard(dev, self.settings, getattr(self.settings, "engine", None)))
         if key == "profiles":
             page = QWidget()
             lay = QVBoxLayout(page)

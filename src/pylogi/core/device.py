@@ -29,6 +29,7 @@ PROFILES, BUTTONS, KEYLIGHT, ZONES, BACKLIGHT = ("profiles", "buttons", "keyligh
 WEBCAM = "webcam"
 FNLOCK = "fnlock"
 WHEEL = "wheel"
+THUMB = "thumbwheel"
 
 
 CACHE_TTL = 5.0          # seconds a prefetched read stays valid
@@ -40,7 +41,7 @@ OFFLINE_PING = 0.35      # shorter wait when probing a device that was offline
 PREFETCH_CAP = {"hosts": EASYSWITCH, "dpi": DPI, "smartshift": SMARTSHIFT, "report_rate": RATE,
                 "controls": BUTTONS, "profiles": PROFILES, "profile_host_mode": PROFILES, "active_profile": PROFILES,
                 "backlight": BACKLIGHT, "zones": ZONES, "fn_lock": FNLOCK, "cam_controls": WEBCAM,
-                "wheel": WHEEL, "key_presence": KEYLIGHT}
+                "wheel": WHEEL, "thumb": THUMB, "key_presence": KEYLIGHT}
 
 
 def _cached(fn):
@@ -141,6 +142,8 @@ class Device:
     def key_presence(self) -> set[int] | None: return None
     def wheel(self) -> tuple[bool, bool]: raise Unsupported
     def set_wheel(self, hires: bool | None = None, invert: bool | None = None) -> None: raise Unsupported
+    def thumb(self) -> tuple[bool, bool]: raise Unsupported          # (diverted to software, inverted)
+    def set_thumb(self, diverted: bool | None = None, invert: bool | None = None) -> None: raise Unsupported
     def fn_lock(self) -> bool: raise Unsupported
     def set_fn_lock(self, on: bool) -> None: raise Unsupported
 
@@ -246,6 +249,8 @@ class HidppDevice(Device):
             c.add(BACKLIGHT)
         if F.HIRES_WHEEL in table:
             c.add(WHEEL)
+        if F.THUMB_WHEEL in table:
+            c.add(THUMB)
         if table.keys() & {F.FN_INVERSION, F.NEW_FN_INVERSION}:
             c.add(FNLOCK)
         try:
@@ -263,6 +268,8 @@ class HidppDevice(Device):
     def key_presence(self): return ft.read_key_presence(self.dev)
     def wheel(self): return ft.read_wheel(self.dev)
     def set_wheel(self, hires=None, invert=None): ft.write_wheel(self.dev, hires, invert)
+    def thumb(self): return ft.read_thumb(self.dev)
+    def set_thumb(self, diverted=None, invert=None): ft.write_thumb(self.dev, diverted, invert)
     def fn_lock(self): return ft.read_fn_lock(self.dev)
     def set_fn_lock(self, on): ft.write_fn_lock(self.dev, on)
     def dpi(self): return ft.read_dpi(self.dev)

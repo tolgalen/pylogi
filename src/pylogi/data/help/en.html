@@ -40,6 +40,8 @@ It talks to the devices directly (HID++), so you do not need any Logitech softwa
 <tr><td><b>Type text</b></td><td>Types the text when you press the button. It assumes a US keyboard layout; punctuation can differ on other layouts.</td></tr>
 <tr><td><b>Run command</b></td><td>Starts a program with its arguments. It does not use a shell, so pipes, <code>;</code> and variables are not interpreted.</td></tr>
 <tr><td><b>Change DPI</b></td><td>Next or previous DPI step.</td></tr>
+<tr><td><b>Macro</b></td><td>A sequence of steps, one per line: <code>key ctrl+shift+T</code>, <code>text hello</code>, <code>media Play/Pause</code>, <code>click left</code>, <code>scroll down</code>, <code>run firefox</code> and <code>wait 250</code> (milliseconds). A number and <code>x</code> in front repeats a step (<code>3x scroll down</code>); lines starting with <code>#</code> are comments. A script with an error is not saved: the line is shown under the editor. The same macro cannot overlap itself, and closing pyLogi stops it.</td></tr>
+<tr><td><b>Gesture</b></td><td>Hold the button and move the mouse: when you release it, the direction (up, down, left, right) runs its macro, and a click with almost no movement runs the <i>Click</i> macro. <i>Movement needed</i> sets how far the mouse must travel. The pointer does not move while the button is held. Written from the documented protocol; not yet verified on every mouse.</td></tr>
 <tr><td><b>Disabled</b></td><td>The button does nothing.</td></tr>
 </table>
 <p>All actions except <i>Original function</i> and <i>Another button</i> are performed by pyLogi, so pyLogi must be running (it can sit in the tray). Those buttons are <i>diverted</i> to the software while pyLogi runs and are given back when you disable management or remove the device. On Linux the keys are sent through a virtual input device (<code>/dev/uinput</code>).</p>
@@ -52,6 +54,7 @@ It talks to the devices directly (HID++), so you do not need any Logitech softwa
 <li><b>Report rate</b>: how often the device reports to the computer. Devices with onboard profiles only allow changing it in host mode (see <a href="#profiles">Profiles</a>).</li>
 <li><b>SmartShift</b>: ratchet or free-spinning wheel, with a threshold for automatic switching.</li>
 <li><b>Wheel</b>: <i>Smooth (high-resolution) scrolling</i> and <i>Invert scrolling direction</i>.</li>
+<li><b>Thumb wheel</b> (mice that have one): <i>Invert thumb wheel direction</i> and what it does. <i>Horizontal scroll (system)</i> leaves it to the operating system; the other modes (horizontal scroll by pyLogi, zoom with Ctrl, volume, switch tabs) are performed by pyLogi, which must be running. Written from the documented protocol; not yet verified on real hardware.</li>
 </ul>
 
 <h2><a name="profiles"></a>Onboard profiles</h2>

@@ -40,6 +40,8 @@ Habla directamente con los dispositivos (HID++), así que no necesitas ningún s
 <tr><td><b>Escribir texto</b></td><td>Escribe el texto al pulsar el botón. Supone una distribución de teclado de EE. UU.; la puntuación puede variar en otras.</td></tr>
 <tr><td><b>Ejecutar comando</b></td><td>Lanza un programa con sus argumentos. No usa shell, así que no se interpretan tuberías, <code>;</code> ni variables.</td></tr>
 <tr><td><b>Cambiar DPI</b></td><td>Paso de DPI siguiente o anterior.</td></tr>
+<tr><td><b>Macro</b></td><td>Una secuencia de pasos, uno por línea: <code>key ctrl+shift+T</code>, <code>text hola</code>, <code>media Play/Pause</code>, <code>click left</code>, <code>scroll down</code>, <code>run firefox</code> y <code>wait 250</code> (milisegundos). Un número y <code>x</code> delante repite un paso (<code>3x scroll down</code>); las líneas que empiezan por <code>#</code> son comentarios. Un script con errores no se guarda: la línea se muestra bajo el editor. La misma macro no se solapa consigo misma y al cerrar pyLogi se detiene.</td></tr>
+<tr><td><b>Gesto</b></td><td>Mantén pulsado el botón y mueve el ratón: al soltarlo, la dirección (arriba, abajo, izquierda, derecha) ejecuta su macro, y un clic casi sin movimiento ejecuta la macro de <i>Clic</i>. <i>Movimiento necesario</i> fija cuánto debe recorrer el ratón. El puntero no se mueve mientras el botón está pulsado. Escrito a partir del protocolo documentado; aún no verificado en todos los ratones.</td></tr>
 <tr><td><b>Desactivado</b></td><td>El botón no hace nada.</td></tr>
 </table>
 <p>Todas las acciones salvo <i>Función original</i> y <i>Otro botón</i> las ejecuta pyLogi, así que pyLogi debe estar en marcha (puede quedarse en la bandeja). Esos botones se <i>desvían</i> al software mientras pyLogi funciona y se devuelven al desactivar la gestión o eliminar el dispositivo. En Linux las teclas se envían mediante un dispositivo de entrada virtual (<code>/dev/uinput</code>).</p>
@@ -52,6 +54,7 @@ Habla directamente con los dispositivos (HID++), así que no necesitas ningún s
 <li><b>Frecuencia de sondeo</b>: cada cuánto informa el dispositivo al ordenador. Los dispositivos con perfiles integrados solo permiten cambiarla en modo anfitrión (ver <a href="#profiles">Perfiles</a>).</li>
 <li><b>SmartShift</b>: rueda con trinquete o libre, con un umbral para el cambio automático.</li>
 <li><b>Rueda</b>: <i>Desplazamiento suave (alta resolución)</i> e <i>Invertir la dirección del desplazamiento</i>.</li>
+<li><b>Rueda del pulgar</b> (ratones que la tienen): <i>Invertir la dirección de la rueda del pulgar</i> y qué hace. <i>Scroll horizontal (sistema)</i> la deja al sistema operativo; los demás modos (scroll horizontal de pyLogi, zoom con Ctrl, volumen, cambiar de pestaña) los realiza pyLogi, que debe estar en ejecución. Escrito a partir del protocolo documentado; aún no verificado en hardware real.</li>
 </ul>
 
 <h2><a name="profiles"></a>Perfiles integrados</h2>

@@ -29,9 +29,9 @@ It talks to the devices directly with the HID++ protocol and to webcams through 
 |---|---|
 | Devices | Mice, keyboards, webcams; Unifying, Bolt, LIGHTSPEED and Nano receivers; Bluetooth LE and wired devices. Battery, connection and online state; hot-plug aware. |
 | Overview | Grid, list or grouped-by-category views; battery and connection badges; red border when offline; product photos (optional download) or your own picture, chosen from the card menu or from the device's *Configuration* (it becomes that device's default; the photo matching also copes with catalog names such as "Signature M650 L"). |
-| Buttons | Photo of the mouse with a callout per button (positions from the product catalog). Each button can be left alone, remapped to another button inside the mouse, or bound to a **software action**: keyboard shortcut, media key, mouse click, scroll step, typed text, command, DPI change, or disabled. |
+| Buttons | Photo of the mouse with a callout per button (positions from the product catalog). Each button can be left alone, remapped to another button inside the mouse, or bound to a **software action**: keyboard shortcut, media key, mouse click, scroll step, typed text, command, DPI change, a **macro** (a script of those steps with pauses and repeats), a **gesture** (hold the button and move the mouse: one macro per direction) or disabled. |
 | Profiles per application | A *Default* profile plus one profile per application; profiles inherit from *Default*. Switches with the focused window (X11/XWayland, or GNOME/Wayland with the helper extension). |
-| Pointer | DPI, report rate, SmartShift, high-resolution scrolling and wheel inversion. |
+| Pointer | DPI, report rate, SmartShift, high-resolution scrolling, wheel inversion and the thumb wheel (invert, or zoom / volume / tabs / horizontal scroll done by pyLogi). |
 | Onboard profiles | Read, edit and write the profiles stored in gaming devices, and choose which one the device uses (name, colour, DPI levels, report rate, 16 button bindings), with CRC handling, JSON export/import and an automatic backup before every write. |
 | Lighting | Per-key RGB map that matches your keyboard (ANSI/ISO and TKL/full size are detected from the keys the keyboard reports, with manual override), zone colours and backlight; colours are re-sent whenever the keyboard reconnects. A fixed colour can also be stored in any onboard profile (device memory, verified on a G915 TKL); per-key maps cannot. |
 | Webcams | Live preview and the V4L2 controls (zoom, pan/tilt, focus, exposure, white balance, image) with *Auto* chips and presets (Default, Streaming, Video call, your own). |
@@ -306,8 +306,13 @@ reach every application. **Not tested on real hardware:** host switching (it wou
 unpairing and Bluetooth removal (destructive; checked against recorded frames only), the GNOME helper extension (GNOME
 loads new extensions only after a login), Windows and macOS.
 
-Not implemented: gestures and the Actions Ring, input injection on Windows and macOS,
-Litra lights, headsets, thumb wheel, vendor-specific UVC controls.
+**Written from the protocol, not verified on hardware:** gestures (raw-XY reporting of the held button), the thumb wheel
+(`THUMB_WHEEL` 0x2150) and input injection on Windows (`SendInput`) and macOS (Quartz events; media keys are not sent there).
+They are covered by tests against recorded frames and fake system calls only; the counts per step of the thumb wheel
+(`actions.THUMB_STEP`) probably need tuning per model.
+
+Not implemented: the Actions Ring, Litra lights, headsets, vendor-specific UVC controls, active-window detection on
+Windows and macOS (so per-application profiles stay Linux-only).
 
 Known behaviours: button diversions are volatile and are re-applied on reconnect; typed text assumes a US layout; per-app
 profiles need X11/XWayland or the GNOME extension; the report rate can only be changed in host mode on devices with onboard

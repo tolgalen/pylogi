@@ -55,6 +55,16 @@ class DeviceSettings:
     def dpi(self, dev: Device) -> int | None:
         return self._rec(dev).get("dpi")
 
+    def thumb(self, dev: Device) -> tuple[str, bool]:
+        """(mode, inverted) saved for the thumb wheel; mode is one of actions.THUMB_MODES."""
+        t = self._rec(dev).get("thumb") or {}
+        return t.get("mode", "native"), bool(t.get("invert", False))
+
+    def save_thumb(self, dev: Device, mode: str | None = None, invert: bool | None = None) -> None:
+        cur_mode, cur_inv = self.thumb(dev)
+        self.save(dev, "thumb", {"mode": cur_mode if mode is None else mode,
+                                 "invert": cur_inv if invert is None else invert})
+
     # -- profiles and bindings
     def profiles(self, dev: Device) -> list[str]:
         names = [p for p in self._rec(dev).get("actions", {}) if p]
@@ -131,6 +141,11 @@ class DeviceSettings:
             dev.set_smartshift(bool(rec["smartshift"][0]), int(rec["smartshift"][1]))
         if rec.get("wheel") and dev.has("wheel"):
             dev.set_wheel(bool(rec["wheel"][0]), bool(rec["wheel"][1]))
+        if rec.get("thumb") and dev.has("thumbwheel"):
+            if self.engine is not None:
+                self.engine.configure_thumb(dev)
+            else:                                          # no software actions: only the direction can be set
+                dev.set_thumb(diverted=False, invert=self.thumb(dev)[1])
         if rec.get("key_colors") and dev.has("keylight"):
             dev.set_key_colors({int(u): tuple(c) for u, c in rec["key_colors"].items()})
         fx = rec.get("fx")

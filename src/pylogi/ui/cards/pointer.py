@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton
 )
 
+from ...core.actions import THUMB_MODES
 from ...core.device import Device
 from ...i18n import N_, tr
 from ..widgets import Card, Switch, attempt, guarded
@@ -22,10 +23,11 @@ from .common import _slider, is_pointing
 
 
 class PointerCard(Card):
-    def __init__(self, dev: Device, settings=None):
+    def __init__(self, dev: Device, settings=None, engine=None):
         super().__init__(N_("Pointer") if is_pointing(dev) else N_("Performance"))
         self.dev = dev
         self.settings = settings
+        self.engine = engine
         grid = QGridLayout()
         self.body.addLayout(grid)
         r = 0
@@ -95,7 +97,35 @@ class PointerCard(Card):
                 grid.addWidget(QLabel(tr("Wheel")), r, 0)
                 grid.addWidget(hires, r, 1, 1, 2)
                 grid.addWidget(inv, r + 1, 1, 1, 2)
+        if dev.has("thumbwheel"):
+            res = guarded(self, dev.thumb, quiet=True)
+            if res is not None:
+                r += 2
+                mode, inverted = settings.thumb(dev) if settings else ("native", res[1])
+                usable = engine is None or engine.injector.available
+                self.thumb_mode = QComboBox()
+                for key, label in THUMB_MODES:
+                    if key == "native" or usable:
+                        self.thumb_mode.addItem(tr(label), key)
+                self.thumb_mode.setCurrentIndex(max(0, self.thumb_mode.findData(mode)))
+                self.thumb_inv = Switch(tr("Invert thumb wheel direction"))
+                self.thumb_inv.setChecked(inverted)
+                self.thumb_mode.activated.connect(lambda _i: self._set_thumb())
+                self.thumb_inv.toggled.connect(lambda _v: self._set_thumb())
+                grid.addWidget(QLabel(tr("Thumb wheel")), r, 0)
+                grid.addWidget(self.thumb_mode, r, 1, 1, 2)
+                grid.addWidget(self.thumb_inv, r + 1, 1, 1, 2)
         grid.setColumnStretch(1, 1)
+
+    def _set_thumb(self) -> None:
+        mode, inv = self.thumb_mode.currentData(), self.thumb_inv.isChecked()
+        if self.settings is None:
+            attempt(self, self.dev.set_thumb, mode != "native", inv)
+            return
+        self.settings.save_thumb(self.dev, mode, inv)
+        engine = self.settings.engine
+        attempt(self, engine.configure_thumb if engine is not None else self.dev.set_thumb,
+                *((self.dev,) if engine is not None else (False, inv)))
 
     def _set_wheel(self, hires: bool, invert: bool) -> None:
         if attempt(self, self.dev.set_wheel, hires, invert) and self.settings:

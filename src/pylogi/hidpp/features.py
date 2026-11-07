@@ -259,10 +259,16 @@ def get_control_reporting(d: Hidpp20Device, cid: int) -> tuple[bool, int]:
     return bool(rep[2] & 0x01), (0 if remap == cid else remap)
 
 
-def set_control_reporting(d: Hidpp20Device, cid: int, divert: bool | None, remap: int | None) -> None:
+RAW_XY, RAW_XY_VALID = 0x10, 0x20
+
+
+def set_control_reporting(d: Hidpp20Device, cid: int, divert: bool | None, remap: int | None,
+                          raw_xy: bool | None = None) -> None:
     """Divert a control to software and/or remap it; None keeps the current value.
 
-    flags: bit0 = divert, bit1 = 'divert valid' (the device only changes flagged fields).
+    flags: bit0 = divert, bit1 = 'divert valid' (the device only changes flagged fields),
+    bit4 = raw XY (while the control is held the mouse reports its movement as notifications
+    instead of moving the pointer: used by gestures), bit5 = 'raw XY valid'.
     A diverted control stops producing its normal HID event and reports its
     presses as notifications instead (see pylogi.core.actions).
     """
@@ -271,6 +277,8 @@ def set_control_reporting(d: Hidpp20Device, cid: int, divert: bool | None, remap
     div = cur_div if divert is None else divert
     target = (cur_remap if remap is None else remap) or cid
     flags = (0x01 if div else 0x00) | 0x02
+    if raw_xy is not None:
+        flags |= (RAW_XY if raw_xy else 0) | RAW_XY_VALID
     d.call(F.REPROG_CONTROLS_V4, 3, struct.pack(">HBH", cid, flags, target))
 
 
@@ -279,6 +287,37 @@ def parse_diverted(report: bytes, feature_index: int) -> list[int] | None:
     if len(report) < 12 or report[0] != 0x11 or report[2] != feature_index or report[3] >> 4 != 0:
         return None
     return [c for c in struct.unpack(">4H", report[4:12]) if c]
+
+
+def parse_raw_xy(report: bytes, feature_index: int) -> tuple[int, int] | None:
+    """(dx, dy) from a raw-XY notification of a held, raw-XY-diverted control (None if not one)."""
+    if len(report) < 8 or report[0] != 0x11 or report[2] != feature_index or report[3] >> 4 != 1:
+        return None
+    return struct.unpack(">hh", report[4:8])
+
+
+# ------------------------------------------------------------- thumb wheel
+def read_thumb(d: Hidpp20Device) -> tuple[bool, bool]:
+    """(diverted to software, direction inverted) of the thumb wheel (THUMB_WHEEL, function 1)."""
+    _need(d, F.THUMB_WHEEL)
+    r = d.call(F.THUMB_WHEEL, 1)
+    return bool(r[0] & 0x01), bool(r[1] & 0x01)
+
+
+def write_thumb(d: Hidpp20Device, diverted: bool | None = None, invert: bool | None = None) -> None:
+    """Change only the given fields (function 2: reporting mode, inversion)."""
+    _need(d, F.THUMB_WHEEL)
+    cur_div, cur_inv = read_thumb(d)
+    div = cur_div if diverted is None else diverted
+    inv = cur_inv if invert is None else invert
+    d.call(F.THUMB_WHEEL, 2, bytes([1 if div else 0, 1 if inv else 0]))
+
+
+def parse_thumb(report: bytes, feature_index: int) -> int | None:
+    """Signed rotation from a thumb-wheel notification while it is diverted (None if not one)."""
+    if len(report) < 6 or report[0] != 0x11 or report[2] != feature_index or report[3] >> 4 != 0:
+        return None
+    return struct.unpack(">h", report[4:6])[0]
 
 
 # --------------------------------------------------------------- backlight

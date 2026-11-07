@@ -16,12 +16,15 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QPlainTextEdit,
     QSizePolicy,
+    QSpinBox,
     QVBoxLayout,
     QWidget
 )
 
-from ..core.actions import ACTION_TYPES, KEYCODES, MEDIA, NEEDS_DIVERT
+from ..core import macros
+from ..core.actions import ACTION_TYPES, GESTURE_DIRECTIONS, GESTURE_THRESHOLD, KEYCODES, MEDIA, NEEDS_DIVERT
 from ..core.types import Control
 from ..i18n import N_, tr
 from . import icons, theme
@@ -211,6 +214,15 @@ class ButtonMap(QWidget):
                 return
 
 
+class ScriptEdit(QPlainTextEdit):
+    """Multi-line macro editor: `editingFinished` fires when it loses focus."""
+    editingFinished = Signal()
+
+    def focusOutEvent(self, e):
+        super().focusOutEvent(e)
+        self.editingFinished.emit()
+
+
 class Inspector(QWidget):
     """Right panel: choose what the selected button does (device remap or a software action)."""
 
@@ -312,6 +324,24 @@ class Inspector(QWidget):
         self.detail.addWidget(box)
         return box
 
+    def _script_edit(self, text: str, placeholder: str, lines: int = 5) -> ScriptEdit:
+        edit = ScriptEdit()
+        edit.setPlainText(text)
+        edit.setPlaceholderText(placeholder)
+        edit.setTabChangesFocus(True)
+        edit.setFixedHeight(edit.fontMetrics().lineSpacing() * lines + 18)
+        edit.editingFinished.connect(self._commit)
+        self.detail.addWidget(edit)
+        return edit
+
+    def _script_error(self, scripts: list[str]) -> str:
+        for s in scripts:
+            try:
+                macros.parse(s)
+            except macros.MacroError as e:
+                return tr("Line {n}: {msg}").format(n=e.line, msg=e.message)
+        return ""
+
     def _build_detail(self, kind: str, b: dict) -> None:
         self._clear_detail()
         self._widgets: dict[str, object] = {}
@@ -349,6 +379,24 @@ class Inspector(QWidget):
                               if kind == "text" else tr("Runs a program with its arguments, without a shell."))
         elif kind == "dpi":
             w["mode"] = self._combo([("Next DPI", "next"), ("Previous DPI", "prev")], b.get("mode", "next"))
+        elif kind == "macro":
+            w["script"] = self._script_edit(b.get("script", ""), tr("One step per line, e.g.:") + "\nkey ctrl+shift+T\nwait 200\ntext hello")
+            self.note.setText(tr("Steps: key, text, media, click, scroll, run, wait. A number and x repeat a step (3x scroll down)."))
+        elif kind == "gesture":
+            self.note.setText(tr("Hold the button and move the mouse: each direction runs a macro. Leave empty to do nothing."))
+            for d, label in (("click", N_("Click (no movement)")), ("up", N_("Up")), ("down", N_("Down")),
+                             ("left", N_("Left")), ("right", N_("Right"))):
+                self.detail.addWidget(QLabel(tr(label)))
+                w[d] = self._script_edit(b.get(d, ""), "key ctrl+Tab", lines=2)
+            row = QHBoxLayout()
+            row.addWidget(QLabel(tr("Movement needed (counts)")))
+            sp = QSpinBox()
+            sp.setRange(10, 500)
+            sp.setValue(int(b.get("threshold", GESTURE_THRESHOLD)))
+            sp.editingFinished.connect(self._commit)
+            row.addWidget(sp)
+            self.detail.addLayout(row)
+            w["threshold"] = sp
         elif kind == "none":
             self.note.setText(tr("The button does nothing."))
         elif kind == "default":
@@ -358,6 +406,8 @@ class Inspector(QWidget):
         if kind in NEEDS_DIVERT and self.engine is not None and not self.engine.injector.available:
             self.note.setText(self.note.text() + "\n" + tr("Software actions are not available:") + " " +
                               self.engine.injector.reason)
+
+    _INVALID: dict = {"type": "invalid"}          # a script with an error: shown to the user, never saved
 
     def _read(self) -> dict | None:
         kind = self.type_box.currentData()
@@ -383,12 +433,28 @@ class Inspector(QWidget):
             return {"type": "command", "cmd": w["edit"].text()}
         if kind == "dpi":
             return {"type": "dpi", "mode": w["mode"].currentData()}
+        if kind == "macro":
+            script = w["script"].toPlainText()
+            err = self._script_error([script])
+            if err:
+                self.note.setText(err)
+                return self._INVALID
+            return {"type": "macro", "script": script}
+        if kind == "gesture":
+            scripts = {d: w[d].toPlainText() for d in ("click", *GESTURE_DIRECTIONS)}
+            err = self._script_error(list(scripts.values()))
+            if err:
+                self.note.setText(err)
+                return self._INVALID
+            return {"type": "gesture", "threshold": w["threshold"].value(), **scripts}
         return None
 
     def _commit(self) -> None:
         if self.cid is None or self.settings is None:
             return
         binding = self._read()
+        if binding is self._INVALID:
+            return
         if binding and binding["type"] == "remap" and not binding["cid"]:
             return
         self.settings.set_binding(self.dev, self.profile, self.cid, binding)
