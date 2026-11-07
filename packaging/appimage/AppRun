@@ -1,0 +1,4 @@
+#!/bin/sh
+# AppImage entry point: starts the bundled pylogi next to this file.
+HERE="$(dirname "$(readlink -f "$0")")"
+exec "$HERE/usr/lib/pylogi/pylogi" "$@"

@@ -1,0 +1,41 @@
+{
+ "_meta": {
+  "id": "forest",
+  "name": "Forest"
+ },
+ "dark": {
+  "BG": "#121a16",
+  "PANEL": "#18221d",
+  "CARD": "#1e2a24",
+  "CARD_HI": "#27362e",
+  "BORDER": "#2f4137",
+  "BORDER_HI": "#55705f",
+  "TEXT": "#f1f6f3",
+  "MUTED": "#9db0a5",
+  "NAV": "#1f4130",
+  "GROOVE": "#1b3328",
+  "GROOVE_OFF": "#2c4036",
+  "HANDLE": "#08110c",
+  "HANDLE_RING": "#12281c",
+  "SWITCH_OFF": "#3b4f44",
+  "ACCENT": "#16a34a",
+  "ACCENT_HI": "#4ade80",
+  "ACCENT_DIM": "#14532d"
+ },
+ "light": {
+  "BG": "#e8f0ea",
+  "PANEL": "#f3f8f4",
+  "CARD": "#fbfdfb",
+  "CARD_HI": "#e8f0ea",
+  "BORDER": "#cfdcd3",
+  "BORDER_HI": "#8fa597",
+  "MUTED": "#5d6f64",
+  "NAV": "#d3efdc",
+  "GROOVE": "#cfe6d7",
+  "GROOVE_OFF": "#dbe5de",
+  "SWITCH_OFF": "#b8c7bd",
+  "ACCENT": "#16a34a",
+  "ACCENT_HI": "#15803d",
+  "ACCENT_DIM": "#bbf7d0"
+ }
+}

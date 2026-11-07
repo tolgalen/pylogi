@@ -1,0 +1,179 @@
+<h1>pyLogi Help</h1>
+<p>pyLogi manages Logitech <b>mice, keyboards and webcams</b> over USB, Bluetooth and the Unifying, Bolt and LIGHTSPEED receivers.
+It talks to the devices directly (HID++), so you do not need any Logitech software.</p>
+
+<p>To keep a copy on paper, press <b>Save as PDF&hellip;</b> (bottom left of this window) or run <code>pylogi --export-help manual.pdf</code>.</p>
+
+<h2><a name="getting-started"></a>Getting started</h2>
+<ol>
+<li><b>Connect your devices.</b> Plug in the receiver, connect the cable or pair over Bluetooth. Wireless devices that are asleep show as <i>Offline</i>; move the mouse or press a key to wake them.</li>
+<li><b>First start.</b> pyLogi asks once whether it may download product photos (see <a href="#settings">Settings</a>). Nothing is downloaded before you answer.</li>
+<li><b>Open a device</b> by clicking its card. Changes are applied immediately; there is no Save button except for the onboard profiles.</li>
+<li><b>If nothing is listed</b>, see <a href="#troubleshooting">Troubleshooting</a>: on Linux your user needs permission to open <code>/dev/hidraw*</code>.</li>
+</ol>
+<p>Only one program should manage a device at a time. If another one (OpenLogi, Solaar, logiops, Logi Options+, G HUB) is running, a yellow banner warns you, because both programs would overwrite each other's button settings.</p>
+
+<h2><a name="devices"></a>The Devices screen</h2>
+<p>The header shows the number of devices and these controls:</p>
+<ul>
+<li><b>Grid / List / By category</b> (three buttons): how devices are shown. The choice is remembered. <i>By category</i> groups them into mice, keyboards, webcams and others.</li>
+<li><b>Settings</b>: language, appearance, photos and more (see <a href="#settings">Settings</a>).</li>
+<li><b>Add</b>: pair new devices (see <a href="#add-remove">Adding and removing devices</a>).</li>
+<li><b>?</b>: this help, the About dialog and the licence.</li>
+</ul>
+<p><b>Cards.</b> Each card shows the product photo, the name and a category label. Top left: how the device is connected (receiver logo and slot number, Bluetooth or a plug for USB; an empty circle means offline). Top right: the battery level. A <b>red border</b> means the device is offline.</p>
+<p>The <b>&hellip;</b> menu of a card offers: <i>Open</i>, <i>Rescan</i> (reads the devices again right now), <i>Choose picture&hellip;</i> (use your own image), <i>Use the original picture</i> and <i>Remove&hellip;</i>.</p>
+<p>Receivers are not listed as devices; they are managed from <i>Add</i>. Cards can be reached with <kbd>Tab</kbd> and opened with <kbd>Enter</kbd> or <kbd>Space</kbd>.</p>
+
+<h2><a name="device-page"></a>The device page</h2>
+<p>A top bar shows the name, battery and connection state, with a back button. The left sidebar lists the sections available for that device; only sections the device supports appear: <b>Buttons</b> (mice), <b>Pointer</b>, <b>Profiles</b>, <b>Lighting</b>, <b>Camera</b> and always <b>Device</b>. Sections load in the background and show <i>Loading&hellip;</i> for a moment, so the window never freezes.</p>
+
+<h2><a name="buttons"></a>Buttons and actions (mice)</h2>
+<p>The mouse photo shows a dot and a card for each programmable button. Click a card (or its dot) to edit it in the <b>Button inspector</b> on the right. The <b>Action</b> list offers:</p>
+<table>
+<tr><td><b>Original function</b></td><td>The button keeps doing what the mouse firmware does.</td></tr>
+<tr><td><b>Another button</b></td><td>The button behaves like a different button of the same mouse. Done inside the mouse.</td></tr>
+<tr><td><b>Keyboard shortcut</b></td><td>Ctrl / Shift / Alt / Win switches plus a key. The keys are pressed when you press the button and released when you release it.</td></tr>
+<tr><td><b>Media key</b></td><td>Play/Pause, next/previous track, volume, mute, calculator, mail, browser keys&hellip; Sent once per press.</td></tr>
+<tr><td><b>Mouse click</b></td><td>Left, right, middle, back or forward click (held while the button is held).</td></tr>
+<tr><td><b>Scroll</b></td><td>One scroll step up, down, left or right per press.</td></tr>
+<tr><td><b>Type text</b></td><td>Types the text when you press the button. It assumes a US keyboard layout; punctuation can differ on other layouts.</td></tr>
+<tr><td><b>Run command</b></td><td>Starts a program with its arguments. It does not use a shell, so pipes, <code>;</code> and variables are not interpreted.</td></tr>
+<tr><td><b>Change DPI</b></td><td>Next or previous DPI step.</td></tr>
+<tr><td><b>Disabled</b></td><td>The button does nothing.</td></tr>
+</table>
+<p>All actions except <i>Original function</i> and <i>Another button</i> are performed by pyLogi, so pyLogi must be running (it can sit in the tray). Those buttons are <i>diverted</i> to the software while pyLogi runs and are given back when you disable management or remove the device. On Linux the keys are sent through a virtual input device (<code>/dev/uinput</code>).</p>
+<p><b>Profiles per application.</b> The strip above the mouse has the <b>Default</b> profile and one tab per application. <b>+ Add application</b> creates a profile named after the application's window class (for example <code>firefox</code>; the current one is suggested). An application profile only needs the buttons that differ: the others are inherited from <i>Default</i>, and choosing <i>Original function</i> in an application profile switches a button back to normal there. Right-click a tab to delete it. <b>Active</b> shows which profile is in force. Switching follows the window in focus automatically on X11 and, on GNOME/Wayland, through the helper extension (<code>pylogi --install-gnome-extension</code>, then log out and in). Without either, only the Default profile applies.</p>
+<p>Button settings are remembered and written again every time the device reconnects, because mice forget them when they power off.</p>
+
+<h2><a name="pointer"></a>Pointer, wheel and report rate</h2>
+<ul>
+<li><b>DPI</b>: slider and quick presets (400, 800, 1600, 3200).</li>
+<li><b>Report rate</b>: how often the device reports to the computer. Devices with onboard profiles only allow changing it in host mode (see <a href="#profiles">Profiles</a>).</li>
+<li><b>SmartShift</b>: ratchet or free-spinning wheel, with a threshold for automatic switching.</li>
+<li><b>Wheel</b>: <i>Smooth (high-resolution) scrolling</i> and <i>Invert scrolling direction</i>.</li>
+</ul>
+
+<h2><a name="profiles"></a>Onboard profiles</h2>
+<p>Gaming devices store profiles in their own memory, so they work on any computer. This section reads and edits them.</p>
+<ul>
+<li><b>Use onboard profiles</b>: on = the device uses its stored profile; off = <i>host mode</i>, where the computer controls settings such as the report rate.</li>
+<li><b>Which profile the device uses.</b> The <b>Profile</b> list chooses the profile you are <i>editing</i>; the one marked <b>&#9679;</b> is the profile the device is <i>using</i> right now. To change it, select another profile and press <b>Use this profile</b> (only in onboard mode). The choice is stored in the device, so it survives switching it off and moving it to another computer.</li>
+<li>Choose a profile, then edit its <b>name</b>, <b>colour</b>, <b>report rate</b>, the five <b>DPI levels</b>, the <b>default</b> and <b>shift</b> DPI levels, and each button's binding (mouse button, key with modifiers, media key, special function, or disabled).</li>
+<li><b>Save to device</b> writes the profile. A backup of all profiles is saved first and a CRC is recalculated, as the device requires. <b>Reload</b> discards edits. <b>Export&hellip;</b> and <b>Import&hellip;</b> use a JSON file.</li>
+</ul>
+
+<h2><a name="lighting"></a>Lighting</h2>
+<ul>
+<li><b>Key layout</b> and <b>Key size</b>: the map shows only the keys your keyboard has. pyLogi reads them from the keyboard itself (it reports which keys exist: a TKL has no numpad keys, an ISO keyboard has the extra <code>&lt;&gt;</code> key), so <i>Automatic</i> normally just works. If a model reports nothing, choose ANSI/ISO and Full size/TKL by hand; then every key of that layout is drawn. The legends are the US ones.</li>
+<li>Click keys to select them (drag to select several, <kbd>Ctrl</kbd>-click to toggle). Pick a colour, then <b>Apply to selected</b> or <b>Apply to all</b>. <b>Rainbow</b> paints a gradient and <b>Select all</b> selects every key.</li>
+<li><b>Copy colour from a key</b> (or right-click a key): the key's colour becomes the picker colour, ready to apply to other keys.</li>
+<li><b>Load colour from profile&hellip;</b> reads the fixed colour stored in an onboard profile and applies it to all keys (profiles using a lighting effect cannot be loaded).</li>
+<li><b>Reset colours</b> forgets the per-key colours pyLogi re-sends and returns the keyboard to the lighting stored in its active profile.</li>
+<li><b>Save colour to profile&hellip;</b> writes the picker colour as the fixed lighting colour of an onboard profile, kept in the keyboard's memory. Individual per-key colours are not stored in profiles (they stay software-controlled and are re-sent on reconnect).</li>
+<li><b>Save preset&hellip;</b> and <b>Load preset&hellip;</b> store colour maps as JSON files.</li>
+<li><b>Effect</b>: besides static colours, pyLogi can animate the keys: <i>Wave</i> and <i>Breathing</i> and <i>Radar</i> and <i>Starlight</i> use the colour you picked; <i>Rainbow wave</i> and <i>Colour cycle</i> use the whole spectrum; <i>Ripple on key press</i> and <i>Reactive</i> light the keys you press. Choose one, set the <b>Speed</b> and press <b>Play effect</b>; speed and colour can be changed while it plays. The effects are drawn by pyLogi (key by key), so it has to keep running, and the effect starts again when the keyboard reconnects. Applying a static colour, or <b>Stop effect</b>, ends it. The two key-press effects read the key codes of your keyboard from <code>/dev/input</code>, which needs your user to be in the <code>input</code> group; only the key code is used, to light that key, and nothing is stored. On a slow link (a receiver) the animation is less smooth.</li>
+<li><b>Zones</b>: a colour for each lighting zone. <b>Backlight</b>: on/off and level for keyboards that have one.</li>
+</ul>
+<p>Key colours are sent live and remembered by pyLogi, which sends them again whenever the keyboard reconnects. They are not saved inside the keyboard.</p>
+
+<h2><a name="camera"></a>Webcams</h2>
+<p>The left card shows a live preview; the camera is opened only while this page is visible, and is released when you leave it. If another program is using the camera you will be told.</p>
+<p>The right card has the controls the camera driver provides:</p>
+<ul>
+<li><b>Lens</b>: zoom, pan, tilt, focus and exposure. Focus and exposure have an <b>Auto</b> chip; while Auto is on the slider is greyed out because the camera controls the value.</li>
+<li><b>Image</b>: anti-flicker (50/60 Hz), backlight compensation, brightness, contrast, saturation, sharpness, gain and white balance (with Auto).</li>
+<li><b>Presets</b>: <i>Default</i> (the camera's factory values), <i>Streaming</i>, <i>Video call</i> and your own. <b>+ New</b> saves the current values under a name; right-click a preset to delete it. <b>Reset to defaults</b> restores the factory values.</li>
+</ul>
+
+<h2><a name="device-section"></a>The Device section</h2>
+<ul>
+<li><b>Device details</b>: name, category, state, battery (with a 7-day chart), connection, <b>device key</b> (the identifier under which pyLogi stores its settings) and serial number.</li>
+<li><b>Easy-Switch</b>: the computers the device is paired with. <b>Switch host</b> moves the device to another computer (it disconnects from this one). <b>Rename&hellip;</b> changes the name stored in the device.</li>
+<li><b>Keys</b> (keyboards): <b>Fn lock</b>, when the keyboard supports it.</li>
+<li><b>Configuration</b>: <b>Manage this device</b> keeps pyLogi's settings applied; turning it off restores the original button functions and stops applying anything. Also: counters of what is stored, <b>Settings</b>, <b>Configuration folder</b> and <b>Remove device&hellip;</b>.</li>
+</ul>
+
+<h2><a name="add-remove"></a>Adding and removing devices</h2>
+<p><b>Add</b> lists your receivers. For Unifying, LIGHTSPEED and Nano receivers, <b>Pair new device</b> opens pairing for 30 seconds: switch the new device on or press its connect button. <b>Unpair</b> removes a slot. Bluetooth devices are paired in the system's Bluetooth settings (<b>Bluetooth settings&hellip;</b> opens them). Pairing Bolt devices is not implemented yet.</p>
+<p><b>Remove&hellip;</b> offers:</p>
+<table>
+<tr><td><b>Unpair from the receiver</b></td><td>Removes the device from its receiver. Needs confirmation; a backup is taken first. The device must be paired again to be used.</td></tr>
+<tr><td><b>Remove the Bluetooth pairing</b></td><td>Removes it from the computer's Bluetooth devices (BlueZ). Needs confirmation.</td></tr>
+<tr><td><b>Forget pyLogi settings</b></td><td>Deletes the stored buttons, profiles, colours and other settings of the device.</td></tr>
+<tr><td><b>Hide from the list</b></td><td>Only hides it. <i>Settings &rarr; Hidden devices &rarr; Show all</i> brings it back.</td></tr>
+<tr><td><b>Delete from pyLogi</b></td><td>Wipes everything stored about it (settings, battery history, picture, cached name) and never lists it again, not even among the hidden ones. Needs confirmation. Undo only with <code>pylogi --restore-deleted</code> (the settings stay deleted).</td></tr>
+</table>
+
+<h2><a name="settings"></a>Settings</h2>
+<ul>
+<li><b>Language</b>: Automatic or one of the installed languages. Add your own by dropping a <code>&lt;code&gt;.json</code> file in the <code>locales</code> folder of the configuration folder.</li>
+<li><b>Appearance</b>: System (follows the OS, live), Light or Dark. <b>Theme</b>: Default, Midnight, Graphite, Forest, Sunset, Violet, Rose or your own JSON file in the <code>themes</code> folder. Forest, Sunset, Violet and Rose also change the accent colour.</li>
+<li><b>Show product photos</b>: downloads photos from the OpenLogi asset mirror on demand and caches them. Only the files of your devices' models are requested; nothing about you is sent. Off = drawn icons only. Photos are Logitech's property.</li>
+<li><b>Start pyLogi with the desktop session</b>: starts minimised to the tray.</li>
+<li><b>Tray menu</b>: each online device with onboard profiles or Easy-Switch hosts has a submenu to change its active profile or host. <i>Save compatibility report&hellip;</i> writes a read-only file with the devices and features found (no serial numbers) that you can attach to a bug report; the same report is available as <code>pylogi --report</code>.</li>
+<li><b>Keep running in the tray when closed</b>: closing the window keeps pyLogi alive so software actions keep working.</li>
+<li><b>Show the start-up screen</b>: the splash screen with the logo while the devices are detected. Off = the window simply appears when ready (<code>--no-splash</code> does the same for one run).</li>
+<li><b>Start hidden in the tray</b>: no window or splash at start-up; use the tray icon to show it. If there is no tray, the window is shown anyway.</li>
+<li><b>Monochrome tray icon</b>: a single-colour glyph that blends in with the desktop's panel.</li>
+<li><b>Remember window size and position</b>: off = the window always opens at 1200&times;800.</li>
+<li><b>Notify when the battery is low</b>: one notification when a device falls to the chosen level (5&ndash;50&nbsp;%) and an urgent one at the second level. They re-arm once the battery has recovered or the device charges.</li>
+<li><b>Notify when a device connects or disconnects</b>: a notification each time a device goes offline or comes back.</li>
+<li><b>One instance</b>: launching pyLogi again shows the running window instead of starting a second copy. <code>pylogi --toggle</code> shows or hides it, handy for a keyboard shortcut.</li>
+<li><b>Battery history</b> (Device page): the last 30 days with a value axis; hover to read the level and date. When there is enough data it also shows an estimate of the days left.</li>
+<li><b>Record a debug log</b>: writes <code>debug.log</code> in the configuration folder with the system, the HID interfaces, the devices found (a new table whenever the list changes), connect / disconnect and lost-ping events, merged duplicates, errors and crashes. Use it when a device is missing, listed twice or flickers, and attach the file to a bug report. Serial numbers, unit ids, Bluetooth addresses and your home folder are masked. <b>Include the raw HID++ traffic</b> also records every report in <code>debug-hid.log</code> (large). <code>pylogi --debug-log</code> records one run only.</li>
+<li><b>Export settings&hellip; / Import settings&hellip;</b>: move the whole configuration between computers.</li>
+<li><b>Hidden devices</b> and <b>Show all</b>.</li>
+</ul>
+
+<h2><a name="cli"></a>Command line</h2>
+<p>Run <code>pylogi</code> without options for the graphical interface. Options:</p>
+<!--CLI-->
+<p><b>Settings for <code>--set</code></b> (<code>name=value</code>): <code>dpi</code>, <code>smartshift</code> (ratchet/free), <code>wheel-invert</code> and <code>wheel-hires</code> (on/off), <code>report-rate</code> (for example <code>"2 ms"</code>), <code>fn-lock</code> (on/off), <code>backlight</code> (0&ndash;N) and <code>camera.&lt;control&gt;</code> (for example <code>camera.brightness=140</code>). <i>DEVICE</i> is any part of the device name or key.</p>
+<pre>pylogi --list --json
+pylogi --get "MX Anywhere"
+pylogi --set "MX Anywhere" dpi=1600 wheel-invert=on
+pylogi --backup</pre>
+<p>Exit status is non-zero when something fails.</p>
+
+<h2><a name="files"></a>Where things are stored</h2>
+<p>Configuration folder (Linux: <code>~/.config/pylogi</code>):</p>
+<ul>
+<li><code>config.json</code>: preferences. <code>devices/</code>: one settings file per device, named after it (for example <code>G915_TKL__serial_abc.json</code>); you can copy or delete one to move or reset a single device. <code>known_devices.json</code>: names remembered for offline devices. <code>battery.json</code>: battery history (30 days).</li>
+<li><code>backups/</code>: full snapshots taken before risky operations. Snapshots you take yourself are never deleted automatically; the <code>auto-*</code> ones made before each write to a device's memory keep only the newest 20 per device.</li>
+<li><code>pictures/</code>: images you chose. <code>locales/</code> and <code>themes/</code>: your own languages and themes.</li>
+</ul>
+<p>Photo cache (Linux: <code>~/.cache/pylogi/images</code>) can be deleted at any time.</p>
+
+<h2><a name="safety"></a>Safety and backups</h2>
+<ul>
+<li>pyLogi saves a backup before anything that can destroy data on a device (writing onboard profiles, unpairing, the self-test).</li>
+<li><code>pylogi --backup</code> snapshots every detected device on demand.</li>
+<li><code>pylogi --self-test</code> writes a temporary value to each setting, reads it back, restores it and checks the device ended identical to its backup.</li>
+<li><code>pylogi --trace-hid FILE</code> logs every HID++ report, for bug reports.</li>
+<li>Switching a device to another computer (Easy-Switch) was not tested on real hardware because it would leave the device on the other computer.</li>
+</ul>
+
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+<ul>
+<li><b>No devices / "permission denied" (Linux).</b> Install the udev rules and re-plug the devices: <code>sudo cp packaging/42-pylogi.rules /etc/udev/rules.d/ &amp;&amp; sudo udevadm control --reload &amp;&amp; sudo udevadm trigger</code>.</li>
+<li><b>A wireless device is Offline.</b> It is asleep. Move it or press a key.</li>
+<li><b>Buttons or settings change back.</b> Another manager is running (see the yellow banner). Close it.</li>
+<li><b>Software actions do nothing.</b> pyLogi must be running, the button must be set to an action, and on Linux <code>/dev/uinput</code> must be writable (the udev rules grant it). <i>About &rarr; System</i> shows the status.</li>
+<li><b>Application profiles never switch.</b> On GNOME/Wayland install the helper extension and log in again; on other Wayland desktops only XWayland windows are detected.</li>
+<li><b>Report rate is refused.</b> Turn off <i>Use onboard profiles</i> first (host mode).</li>
+<li><b>No camera preview.</b> Another program is using the camera, or Qt Multimedia has no backend.</li>
+<li><b>No photos.</b> Enable them in Settings; they need an internet connection the first time. A drawn icon is used otherwise.</li>
+<li><b>Reporting a problem.</b> Copy <i>About &rarr; System</i> and attach a <code>--trace-hid</code> log.</li>
+</ul>
+
+<h2><a name="shortcuts"></a>Keyboard shortcuts</h2>
+<table>
+<tr><td><kbd>F1</kbd></td><td>Open this help.</td></tr>
+<tr><td><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></td><td>Move between cards and controls.</td></tr>
+<tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Open the focused device card.</td></tr>
+<tr><td><kbd>Ctrl</kbd>-click</td><td>Add or remove a key in the lighting map selection.</td></tr>
+</table>
+
+<h2><a name="license"></a>Licence</h2>
+<p>pyLogi is free software released under the GNU General Public License, version 3 or (at your option) any later version. It comes with <b>no warranty</b>. See <i>? &rarr; About pyLogi</i> for the full text and the third-party components. Logitech and its product names are trademarks of Logitech; pyLogi is an independent project.</p>

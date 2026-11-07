@@ -1,0 +1,41 @@
+{
+ "_meta": {
+  "id": "violet",
+  "name": "Violet"
+ },
+ "dark": {
+  "BG": "#16141d",
+  "PANEL": "#1c1a26",
+  "CARD": "#232030",
+  "CARD_HI": "#2d2a3d",
+  "BORDER": "#3a3650",
+  "BORDER_HI": "#625d85",
+  "TEXT": "#f5f3fb",
+  "MUTED": "#a7a2bd",
+  "NAV": "#33294f",
+  "GROOVE": "#2a2342",
+  "GROOVE_OFF": "#3a3650",
+  "HANDLE": "#0c0a14",
+  "HANDLE_RING": "#1e1836",
+  "SWITCH_OFF": "#463f61",
+  "ACCENT": "#8b5cf6",
+  "ACCENT_HI": "#a78bfa",
+  "ACCENT_DIM": "#4c1d95"
+ },
+ "light": {
+  "BG": "#eeebf6",
+  "PANEL": "#f6f4fb",
+  "CARD": "#fdfcff",
+  "CARD_HI": "#eeebf6",
+  "BORDER": "#d9d4ea",
+  "BORDER_HI": "#9a92b8",
+  "MUTED": "#645e7a",
+  "NAV": "#e4dcfb",
+  "GROOVE": "#dcd3f4",
+  "GROOVE_OFF": "#e1deec",
+  "SWITCH_OFF": "#c3bdd8",
+  "ACCENT": "#8b5cf6",
+  "ACCENT_HI": "#6d28d9",
+  "ACCENT_DIM": "#ddd6fe"
+ }
+}

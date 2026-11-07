@@ -1,0 +1,179 @@
+<h1>Ayuda de pyLogi</h1>
+<p>pyLogi gestiona <b>ratones, teclados y webcams</b> de Logitech por USB, Bluetooth y con los receptores Unifying, Bolt y LIGHTSPEED.
+Habla directamente con los dispositivos (HID++), así que no necesitas ningún software de Logitech.</p>
+
+<p>Para conservar una copia en papel, pulsa <b>Guardar como PDF&hellip;</b> (abajo a la izquierda de esta ventana) o ejecuta <code>pylogi --export-help manual.pdf</code>.</p>
+
+<h2><a name="getting-started"></a>Primeros pasos</h2>
+<ol>
+<li><b>Conecta tus dispositivos.</b> Enchufa el receptor, conecta el cable o empareja por Bluetooth. Los dispositivos inalámbricos dormidos aparecen como <i>Sin conexión</i>; mueve el ratón o pulsa una tecla para despertarlos.</li>
+<li><b>Primer arranque.</b> pyLogi pregunta una vez si puede descargar las fotos de los productos (ver <a href="#settings">Ajustes</a>). No se descarga nada antes de que respondas.</li>
+<li><b>Abre un dispositivo</b> haciendo clic en su tarjeta. Los cambios se aplican al instante; no hay botón Guardar salvo en los perfiles integrados.</li>
+<li><b>Si no aparece nada</b>, mira <a href="#troubleshooting">Solución de problemas</a>: en Linux tu usuario necesita permiso para abrir <code>/dev/hidraw*</code>.</li>
+</ol>
+<p>Solo un programa debería gestionar un dispositivo a la vez. Si hay otro en marcha (OpenLogi, Solaar, logiops, Logi Options+, G HUB), un aviso amarillo te lo indica, porque ambos se pisarían los ajustes de los botones.</p>
+
+<h2><a name="devices"></a>La pantalla de dispositivos</h2>
+<p>La cabecera muestra el número de dispositivos y estos controles:</p>
+<ul>
+<li><b>Cuadrícula / Lista / Por categorías</b> (tres botones): cómo se muestran los dispositivos. La elección se recuerda. <i>Por categorías</i> los agrupa en ratones, teclados, webcams y otros.</li>
+<li><b>Ajustes</b>: idioma, apariencia, fotos y más (ver <a href="#settings">Ajustes</a>).</li>
+<li><b>Añadir</b>: emparejar dispositivos nuevos (ver <a href="#add-remove">Añadir y eliminar dispositivos</a>).</li>
+<li><b>?</b>: esta ayuda, el diálogo Acerca de y la licencia.</li>
+</ul>
+<p><b>Tarjetas.</b> Cada tarjeta muestra la foto del producto, el nombre y una etiqueta de categoría. Arriba a la izquierda: cómo está conectado (logo del receptor y número de ranura, Bluetooth o un enchufe para USB; un círculo vacío significa sin conexión). Arriba a la derecha: el nivel de batería. Un <b>borde rojo</b> indica que el dispositivo está sin conexión.</p>
+<p>El menú <b>&hellip;</b> de una tarjeta ofrece: <i>Abrir</i>, <i>Buscar</i> (vuelve a leer los dispositivos ahora mismo), <i>Elegir imagen&hellip;</i> (usar una imagen propia), <i>Usar la imagen original</i> y <i>Eliminar&hellip;</i>.</p>
+<p>Los receptores no aparecen como dispositivos; se gestionan desde <i>Añadir</i>. Se puede llegar a las tarjetas con <kbd>Tab</kbd> y abrirlas con <kbd>Intro</kbd> o <kbd>Espacio</kbd>.</p>
+
+<h2><a name="device-page"></a>La página del dispositivo</h2>
+<p>Una barra superior muestra el nombre, la batería y el estado de conexión, con un botón para volver. La barra lateral izquierda lista las secciones disponibles para ese dispositivo; solo aparecen las que soporta: <b>Botones</b> (ratones), <b>Puntero</b>, <b>Perfiles</b>, <b>Iluminación</b>, <b>Cámara</b> y siempre <b>Dispositivo</b>. Las secciones se cargan en segundo plano y muestran <i>Cargando&hellip;</i> un instante, así que la ventana nunca se congela.</p>
+
+<h2><a name="buttons"></a>Botones y acciones (ratones)</h2>
+<p>La foto del ratón muestra un punto y una tarjeta por cada botón programable. Haz clic en una tarjeta (o en su punto) para editarla en el <b>Inspector de botones</b> de la derecha. La lista <b>Acción</b> ofrece:</p>
+<table>
+<tr><td><b>Función original</b></td><td>El botón sigue haciendo lo que hace el firmware del ratón.</td></tr>
+<tr><td><b>Otro botón</b></td><td>El botón se comporta como otro botón del mismo ratón. Lo hace el propio ratón.</td></tr>
+<tr><td><b>Atajo de teclado</b></td><td>Interruptores Ctrl / Shift / Alt / Win más una tecla. Las teclas se pulsan al pulsar el botón y se sueltan al soltarlo.</td></tr>
+<tr><td><b>Tecla multimedia</b></td><td>Reproducir/Pausa, pista siguiente/anterior, volumen, silencio, calculadora, correo, teclas del navegador&hellip; Se envía una vez por pulsación.</td></tr>
+<tr><td><b>Clic de ratón</b></td><td>Clic izquierdo, derecho, central, atrás o adelante (se mantiene mientras mantienes el botón).</td></tr>
+<tr><td><b>Desplazamiento</b></td><td>Un paso de desplazamiento arriba, abajo, izquierda o derecha por pulsación.</td></tr>
+<tr><td><b>Escribir texto</b></td><td>Escribe el texto al pulsar el botón. Supone una distribución de teclado de EE. UU.; la puntuación puede variar en otras.</td></tr>
+<tr><td><b>Ejecutar comando</b></td><td>Lanza un programa con sus argumentos. No usa shell, así que no se interpretan tuberías, <code>;</code> ni variables.</td></tr>
+<tr><td><b>Cambiar DPI</b></td><td>Paso de DPI siguiente o anterior.</td></tr>
+<tr><td><b>Desactivado</b></td><td>El botón no hace nada.</td></tr>
+</table>
+<p>Todas las acciones salvo <i>Función original</i> y <i>Otro botón</i> las ejecuta pyLogi, así que pyLogi debe estar en marcha (puede quedarse en la bandeja). Esos botones se <i>desvían</i> al software mientras pyLogi funciona y se devuelven al desactivar la gestión o eliminar el dispositivo. En Linux las teclas se envían mediante un dispositivo de entrada virtual (<code>/dev/uinput</code>).</p>
+<p><b>Perfiles por aplicación.</b> La tira sobre el ratón tiene el perfil <b>Predeterminado</b> y una pestaña por aplicación. <b>+ Añadir aplicación</b> crea un perfil con el nombre de la clase de ventana de la aplicación (por ejemplo <code>firefox</code>; se sugiere la actual). Un perfil de aplicación solo necesita los botones que difieren: el resto se hereda de <i>Predeterminado</i>, y elegir <i>Función original</i> en un perfil de aplicación devuelve ese botón a su comportamiento normal allí. Pulsa con el botón derecho una pestaña para eliminarla. <b>Activo</b> indica qué perfil está en vigor. El cambio sigue a la ventana con el foco automáticamente en X11 y, en GNOME/Wayland, mediante la extensión auxiliar (<code>pylogi --install-gnome-extension</code>, y cerrar sesión y volver a entrar). Sin ninguna de las dos, solo se aplica el perfil Predeterminado.</p>
+<p>Los ajustes de botones se recuerdan y se escriben de nuevo cada vez que el dispositivo se reconecta, porque los ratones los olvidan al apagarse.</p>
+
+<h2><a name="pointer"></a>Puntero, rueda y frecuencia de sondeo</h2>
+<ul>
+<li><b>DPI</b>: deslizador y valores rápidos (400, 800, 1600, 3200).</li>
+<li><b>Frecuencia de sondeo</b>: cada cuánto informa el dispositivo al ordenador. Los dispositivos con perfiles integrados solo permiten cambiarla en modo anfitrión (ver <a href="#profiles">Perfiles</a>).</li>
+<li><b>SmartShift</b>: rueda con trinquete o libre, con un umbral para el cambio automático.</li>
+<li><b>Rueda</b>: <i>Desplazamiento suave (alta resolución)</i> e <i>Invertir la dirección del desplazamiento</i>.</li>
+</ul>
+
+<h2><a name="profiles"></a>Perfiles integrados</h2>
+<p>Los dispositivos para juegos guardan perfiles en su propia memoria, así que funcionan en cualquier ordenador. Esta sección los lee y edita.</p>
+<ul>
+<li><b>Usar perfiles integrados</b>: activado = el dispositivo usa su perfil guardado; desactivado = <i>modo anfitrión</i>, donde el ordenador controla ajustes como la frecuencia de sondeo.</li>
+<li><b>Qué perfil usa el dispositivo.</b> La lista <b>Perfil</b> elige el perfil que estás <i>editando</i>; el marcado con <b>&#9679;</b> es el que el dispositivo está <i>usando</i> ahora mismo. Para cambiarlo, selecciona otro perfil y pulsa <b>Usar este perfil</b> (solo en modo integrado). La elección se guarda en el dispositivo, así que se mantiene al apagarlo y al llevarlo a otro ordenador.</li>
+<li>Elige un perfil y edita su <b>nombre</b>, <b>color</b>, <b>frecuencia de sondeo</b>, los cinco <b>niveles de DPI</b>, los niveles de DPI <b>por defecto</b> y <b>con shift</b>, y la asignación de cada botón (botón de ratón, tecla con modificadores, tecla multimedia, función especial o desactivado).</li>
+<li><b>Guardar en dispositivo</b> escribe el perfil. Antes se guarda una copia de seguridad de todos los perfiles y se recalcula el CRC, como exige el dispositivo. <b>Recargar</b> descarta los cambios. <b>Exportar&hellip;</b> e <b>Importar&hellip;</b> usan un fichero JSON.</li>
+</ul>
+
+<h2><a name="lighting"></a>Iluminación</h2>
+<ul>
+<li><b>Distribución de teclas</b> y <b>Tamaño</b>: el mapa muestra solo las teclas que tiene tu teclado. pyLogi las lee del propio teclado (informa de qué teclas existen: un TKL no tiene teclas de teclado numérico y un teclado ISO tiene la tecla extra <code>&lt;&gt;</code>), así que <i>Automático</i> suele bastar. Si un modelo no informa de nada, elige a mano ANSI/ISO y Tamaño completo/TKL; entonces se dibujan todas las teclas de esa distribución. Los rótulos son los de EE. UU.</li>
+<li>Haz clic en las teclas para seleccionarlas (arrastra para varias, <kbd>Ctrl</kbd>+clic para alternar). Elige un color y pulsa <b>Aplicar a la selección</b> o <b>Aplicar a todas</b>. <b>Arcoíris</b> pinta un degradado y <b>Seleccionar todas</b> selecciona todas las teclas.</li>
+<li><b>Copiar color de una tecla</b> (o clic derecho sobre una tecla): el color de la tecla pasa al selector, listo para aplicarlo a otras teclas.</li>
+<li><b>Cargar color del perfil&hellip;</b> lee el color fijo guardado en un perfil integrado y lo aplica a todas las teclas (los perfiles con efecto de iluminaci&oacute;n no se pueden cargar).</li>
+<li><b>Restablecer colores</b> olvida los colores por tecla que pyLogi reenv&iacute;a y devuelve el teclado a la iluminaci&oacute;n guardada en su perfil activo.</li>
+<li><b>Guardar color en el perfil&hellip;</b> escribe el color elegido como color fijo de iluminaci&oacute;n de un perfil integrado, guardado en la memoria del teclado. Los colores individuales por tecla no se guardan en los perfiles (los controla el software y se reenv&iacute;an al reconectar).</li>
+<li><b>Guardar preset&hellip;</b> y <b>Cargar preset&hellip;</b> guardan mapas de colores en ficheros JSON.</li>
+<li><b>Efecto</b>: además de los colores fijos, pyLogi puede animar las teclas: <i>Onda</i>, <i>Respiraci&oacute;n</i>, <i>Radar</i> y <i>Estrellas</i> usan el color elegido; <i>Onda arco&iacute;ris</i> y <i>Ciclo de color</i> recorren todo el espectro; <i>Ondas al pulsar</i> y <i>Reactivo</i> iluminan las teclas que pulsas. Elige uno, ajusta la <b>Velocidad</b> y pulsa <b>Reproducir efecto</b>; la velocidad y el color se pueden cambiar mientras suena. Los efectos los dibuja pyLogi (tecla a tecla), as&iacute; que debe seguir en marcha, y el efecto se reanuda al reconectar el teclado. Aplicar un color fijo o <b>Detener efecto</b> lo termina. Los dos efectos con pulsaci&oacute;n leen los c&oacute;digos de tecla de tu teclado en <code>/dev/input</code>, lo que exige que tu usuario est&eacute; en el grupo <code>input</code>; solo se usa el c&oacute;digo para iluminar esa tecla y no se guarda nada. En un enlace lento (un receptor) la animaci&oacute;n es menos fluida.</li>
+<li><b>Zonas</b>: un color por cada zona de iluminación. <b>Retroiluminación</b>: activar y nivel en los teclados que la tienen.</li>
+</ul>
+<p>Los colores de las teclas se envían en vivo y pyLogi los recuerda y los vuelve a enviar cada vez que el teclado se reconecta. No se guardan dentro del teclado.</p>
+
+<h2><a name="camera"></a>Webcams</h2>
+<p>La tarjeta izquierda muestra una vista previa en vivo; la cámara solo se abre mientras esta página está visible y se libera al salir. Si otro programa está usando la cámara, se te avisa.</p>
+<p>La tarjeta derecha tiene los controles que ofrece el controlador de la cámara:</p>
+<ul>
+<li><b>Objetivo</b>: zoom, panorámica, inclinación, enfoque y exposición. El enfoque y la exposición tienen un chip <b>Auto</b>; con Auto activado el deslizador aparece atenuado porque la cámara controla el valor.</li>
+<li><b>Imagen</b>: antiparpadeo (50/60 Hz), compensación de contraluz, brillo, contraste, saturación, nitidez, ganancia y balance de blancos (con Auto).</li>
+<li><b>Presets</b>: <i>Predeterminado</i> (los valores de fábrica de la cámara), <i>Streaming</i>, <i>Videollamada</i> y los tuyos. <b>+ Nuevo</b> guarda los valores actuales con un nombre; pulsa con el botón derecho un preset para eliminarlo. <b>Restablecer valores predeterminados</b> restaura los valores de fábrica.</li>
+</ul>
+
+<h2><a name="device-section"></a>La sección Dispositivo</h2>
+<ul>
+<li><b>Detalles del dispositivo</b>: nombre, categoría, estado, batería (con gráfica de 30 días), conexión, <b>clave del dispositivo</b> (el identificador con el que pyLogi guarda sus ajustes) y número de serie.</li>
+<li><b>Easy-Switch</b>: los ordenadores con los que está emparejado el dispositivo. <b>Cambiar de equipo</b> pasa el dispositivo a otro ordenador (se desconecta de este). <b>Cambiar nombre&hellip;</b> modifica el nombre guardado en el dispositivo.</li>
+<li><b>Teclas</b> (teclados): <b>Bloqueo Fn</b>, cuando el teclado lo soporta.</li>
+<li><b>Configuración</b>: <b>Gestionar este dispositivo</b> mantiene aplicados los ajustes de pyLogi; al desactivarlo se restauran las funciones originales de los botones y se deja de aplicar nada. Además: contadores de lo guardado, <b>Ajustes</b>, <b>Carpeta de configuración</b> y <b>Eliminar dispositivo&hellip;</b>.</li>
+</ul>
+
+<h2><a name="add-remove"></a>Añadir y eliminar dispositivos</h2>
+<p><b>Añadir</b> lista tus receptores. En los receptores Unifying, LIGHTSPEED y Nano, <b>Emparejar dispositivo</b> abre el emparejamiento durante 30 segundos: enciende el dispositivo nuevo o pulsa su botón de conexión. <b>Desemparejar</b> elimina una ranura. Los dispositivos Bluetooth se emparejan en los ajustes de Bluetooth del sistema (<b>Ajustes de Bluetooth&hellip;</b> los abre). El emparejamiento de dispositivos Bolt aún no está implementado.</p>
+<p><b>Eliminar&hellip;</b> ofrece:</p>
+<table>
+<tr><td><b>Desemparejar del receptor</b></td><td>Quita el dispositivo de su receptor. Pide confirmación y antes se hace una copia de seguridad. Hay que volver a emparejarlo para usarlo.</td></tr>
+<tr><td><b>Quitar el emparejamiento Bluetooth</b></td><td>Lo quita de los dispositivos Bluetooth del ordenador (BlueZ). Pide confirmación.</td></tr>
+<tr><td><b>Olvidar los ajustes de pyLogi</b></td><td>Borra los botones, perfiles, colores y demás ajustes guardados del dispositivo.</td></tr>
+<tr><td><b>Ocultar de la lista</b></td><td>Solo lo oculta. <i>Ajustes &rarr; Dispositivos ocultos &rarr; Mostrar todos</i> lo recupera.</td></tr>
+<tr><td><b>Eliminar de pyLogi</b></td><td>Borra todo lo guardado sobre él (ajustes, historial de batería, imagen, nombre en caché) y no vuelve a mostrarlo, ni siquiera entre los ocultos. Pide confirmación. Solo se deshace con <code>pylogi --restore-deleted</code> (los ajustes siguen borrados).</td></tr>
+</table>
+
+<h2><a name="settings"></a>Ajustes</h2>
+<ul>
+<li><b>Idioma</b>: Automático o uno de los idiomas instalados. Añade el tuyo dejando un fichero <code>&lt;código&gt;.json</code> en la carpeta <code>locales</code> de la carpeta de configuración.</li>
+<li><b>Apariencia</b>: Sistema (sigue al sistema operativo, en vivo), Claro u Oscuro. <b>Tema</b>: Predeterminado, Medianoche, Grafito, Bosque, Atardecer, Violeta, Rosa o un fichero JSON tuyo en la carpeta <code>themes</code>. Bosque, Atardecer, Violeta y Rosa también cambian el color de acento.</li>
+<li><b>Mostrar fotos de los productos</b>: descarga fotos del espejo de recursos de OpenLogi bajo demanda y las guarda en caché. Solo se piden los ficheros de los modelos de tus dispositivos; no se envía nada sobre ti. Desactivado = solo iconos dibujados. Las fotos son propiedad de Logitech.</li>
+<li><b>Iniciar pyLogi con la sesión de escritorio</b>: arranca minimizado en la bandeja.</li>
+<li><b>Men&uacute; de la bandeja</b>: cada dispositivo conectado con perfiles integrados o anfitriones Easy-Switch tiene un submen&uacute; para cambiar su perfil activo o su anfitri&oacute;n. <i>Guardar informe de compatibilidad&hellip;</i> escribe un fichero de solo lectura con los dispositivos y funciones encontrados (sin n&uacute;meros de serie) para adjuntarlo a un error; el mismo informe est&aacute; disponible como <code>pylogi --report</code>.</li>
+<li><b>Seguir en la bandeja del sistema al cerrar</b>: cerrar la ventana mantiene pyLogi vivo para que las acciones por software sigan funcionando.</li>
+<li><b>Mostrar la pantalla de inicio</b>: la pantalla con el logotipo mientras se detectan los dispositivos. Desactivado = la ventana aparece cuando est&aacute; lista (<code>--no-splash</code> hace lo mismo para una sola ejecuci&oacute;n).</li>
+<li><b>Iniciar oculto en la bandeja</b>: sin ventana ni pantalla de inicio al arrancar; usa el icono de la bandeja para mostrarla. Si no hay bandeja, la ventana se muestra igualmente.</li>
+<li><b>Icono de bandeja monocromo</b>: un glifo de un solo color que encaja con el panel del escritorio.</li>
+<li><b>Recordar tama&ntilde;o y posici&oacute;n de la ventana</b>: desactivado = la ventana siempre se abre a 1200&times;800.</li>
+<li><b>Avisar cuando la bater&iacute;a est&eacute; baja</b>: una notificaci&oacute;n cuando un dispositivo baja al nivel elegido (5&ndash;50&nbsp;%) y otra urgente en el segundo nivel. Se rearman cuando la bater&iacute;a se recupera o el dispositivo se carga.</li>
+<li><b>Avisar cuando un dispositivo se conecte o desconecte</b>: una notificaci&oacute;n cada vez que un dispositivo se desconecta o vuelve.</li>
+<li><b>Una sola instancia</b>: si lanzas pyLogi otra vez, muestra la ventana que ya est&aacute; abierta en lugar de iniciar una segunda copia. <code>pylogi --toggle</code> la muestra u oculta, &uacute;til para un atajo de teclado.</li>
+<li><b>Historial de bater&iacute;a</b> (p&aacute;gina del dispositivo): los &uacute;ltimos 30 d&iacute;as con eje de valores; al pasar el rat&oacute;n se ve el nivel y la fecha. Con datos suficientes tambi&eacute;n estima los d&iacute;as restantes.</li>
+<li><b>Grabar un registro de depuraci&oacute;n</b>: escribe <code>debug.log</code> en la carpeta de configuraci&oacute;n con el sistema, las interfaces HID, los dispositivos encontrados (una tabla nueva cada vez que cambia la lista), los eventos de conexi&oacute;n y desconexi&oacute;n y de consultas sin respuesta, los duplicados fusionados, los errores y los fallos. &Uacute;salo cuando falte un dispositivo, salga dos veces o parpadee, y adjunta el archivo a un informe de error. Los n&uacute;meros de serie, los ids de unidad, las direcciones Bluetooth y tu carpeta personal se enmascaran. <b>Incluir el tr&aacute;fico HID++ sin procesar</b> graba adem&aacute;s cada informe en <code>debug-hid.log</code> (grande). <code>pylogi --debug-log</code> graba solo una ejecuci&oacute;n.</li>
+<li><b>Exportar ajustes&hellip; / Importar ajustes&hellip;</b>: mueve toda la configuración entre ordenadores.</li>
+<li><b>Dispositivos ocultos</b> y <b>Mostrar todos</b>.</li>
+</ul>
+
+<h2><a name="cli"></a>Línea de comandos</h2>
+<p>Ejecuta <code>pylogi</code> sin opciones para la interfaz gráfica. Opciones (las descripciones están en inglés, como la salida de <code>--help</code>):</p>
+<!--CLI-->
+<p><b>Ajustes para <code>--set</code></b> (<code>nombre=valor</code>): <code>dpi</code>, <code>smartshift</code> (ratchet/free), <code>wheel-invert</code> y <code>wheel-hires</code> (on/off), <code>report-rate</code> (por ejemplo <code>"2 ms"</code>), <code>fn-lock</code> (on/off), <code>backlight</code> (0&ndash;N) y <code>camera.&lt;control&gt;</code> (por ejemplo <code>camera.brightness=140</code>). <i>DEVICE</i> es cualquier parte del nombre o de la clave del dispositivo.</p>
+<pre>pylogi --list --json
+pylogi --get "MX Anywhere"
+pylogi --set "MX Anywhere" dpi=1600 wheel-invert=on
+pylogi --backup</pre>
+<p>El código de salida es distinto de cero cuando algo falla.</p>
+
+<h2><a name="files"></a>Dónde se guardan las cosas</h2>
+<p>Carpeta de configuración (Linux: <code>~/.config/pylogi</code>):</p>
+<ul>
+<li><code>config.json</code>: preferencias. <code>devices/</code>: un fichero de ajustes por dispositivo con su nombre (por ejemplo <code>G915_TKL__serial_abc.json</code>); puedes copiar o borrar uno para mover o reiniciar un solo dispositivo. <code>known_devices.json</code>: nombres recordados de dispositivos sin conexión. <code>battery.json</code>: historial de batería (14 días).</li>
+<li><code>backups/</code>: copias completas hechas antes de operaciones arriesgadas. Las que haces tú no se borran nunca automáticamente; las <code>auto-*</code>, hechas antes de cada escritura en la memoria de un dispositivo, conservan solo las 20 más recientes por dispositivo.</li>
+<li><code>pictures/</code>: imágenes que has elegido. <code>locales/</code> y <code>themes/</code>: tus propios idiomas y temas.</li>
+</ul>
+<p>La caché de fotos (Linux: <code>~/.cache/pylogi/images</code>) se puede borrar en cualquier momento.</p>
+
+<h2><a name="safety"></a>Seguridad y copias</h2>
+<ul>
+<li>pyLogi guarda una copia antes de cualquier operación que pueda destruir datos de un dispositivo (escribir perfiles integrados, desemparejar, la autoprueba).</li>
+<li><code>pylogi --backup</code> hace una copia de cada dispositivo detectado cuando quieras.</li>
+<li><code>pylogi --self-test</code> escribe un valor temporal en cada ajuste, lo lee de vuelta, lo restaura y comprueba que el dispositivo termina idéntico a su copia.</li>
+<li><code>pylogi --trace-hid FILE</code> registra cada informe HID++, para informes de errores.</li>
+<li>El cambio de un dispositivo a otro ordenador (Easy-Switch) no se probó con hardware real porque dejaría el dispositivo en el otro ordenador.</li>
+</ul>
+
+<h2><a name="troubleshooting"></a>Solución de problemas</h2>
+<ul>
+<li><b>No hay dispositivos / "permiso denegado" (Linux).</b> Instala las reglas udev y vuelve a conectar los dispositivos: <code>sudo cp packaging/42-pylogi.rules /etc/udev/rules.d/ &amp;&amp; sudo udevadm control --reload &amp;&amp; sudo udevadm trigger</code>.</li>
+<li><b>Un dispositivo inalámbrico está sin conexión.</b> Está dormido. Muévelo o pulsa una tecla.</li>
+<li><b>Los botones o ajustes vuelven a cambiar.</b> Hay otro gestor en marcha (mira el aviso amarillo). Ciérralo.</li>
+<li><b>Las acciones por software no hacen nada.</b> pyLogi debe estar en marcha, el botón debe tener una acción asignada y, en Linux, <code>/dev/uinput</code> debe ser escribible (las reglas udev lo permiten). <i>Acerca de &rarr; Sistema</i> muestra el estado.</li>
+<li><b>Los perfiles de aplicación nunca cambian.</b> En GNOME/Wayland instala la extensión auxiliar y vuelve a iniciar sesión; en otros escritorios Wayland solo se detectan las ventanas de XWayland.</li>
+<li><b>Se rechaza la frecuencia de sondeo.</b> Desactiva primero <i>Usar perfiles integrados</i> (modo anfitrión).</li>
+<li><b>No hay vista previa de la cámara.</b> Otro programa está usando la cámara, o Qt Multimedia no tiene un backend.</li>
+<li><b>No hay fotos.</b> Actívalas en Ajustes; necesitan conexión a internet la primera vez. Si no, se usa un icono dibujado.</li>
+<li><b>Informar de un problema.</b> Copia <i>Acerca de &rarr; Sistema</i> y adjunta un registro de <code>--trace-hid</code>.</li>
+</ul>
+
+<h2><a name="shortcuts"></a>Atajos de teclado</h2>
+<table>
+<tr><td><kbd>F1</kbd></td><td>Abrir esta ayuda.</td></tr>
+<tr><td><kbd>Tab</kbd> / <kbd>Mayús+Tab</kbd></td><td>Moverse entre tarjetas y controles.</td></tr>
+<tr><td><kbd>Intro</kbd> / <kbd>Espacio</kbd></td><td>Abrir la tarjeta de dispositivo con el foco.</td></tr>
+<tr><td><kbd>Ctrl</kbd>+clic</td><td>Añadir o quitar una tecla de la selección del mapa de iluminación.</td></tr>
+</table>
+
+<h2><a name="license"></a>Licencia</h2>
+<p>pyLogi es software libre publicado bajo la Licencia Pública General de GNU, versión 3 o (a tu elección) cualquier versión posterior. Se ofrece <b>sin garantía</b>. Mira <i>? &rarr; Acerca de pyLogi</i> para el texto completo y los componentes de terceros. Logitech y los nombres de sus productos son marcas de Logitech; pyLogi es un proyecto independiente.</p>

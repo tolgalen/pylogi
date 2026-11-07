@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pylogi"
+version = "0.2.0"
+description = "Qt manager for Logitech mice, keyboards and webcams (HID++)"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Programming Language :: Python :: 3",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: System :: Hardware",
+]
+requires-python = ">=3.10"
+dependencies = ["PySide6-Essentials>=6.5", "PySide6-Addons>=6.5"]
+
+[project.optional-dependencies]
+hidapi = ["hidapi"]   # Windows / macOS transport
+build = ["pyinstaller"]   # python scripts/build_release.py
+
+[project.scripts]
+pylogi = "pylogi.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pylogi = ["locales/*.json", "themes/*.json", "data/*.svg", "data/LICENSE", "data/help/*.html", "data/*.ico", "data/*.png", "data/icons/*.png", "data/gnome-extension/*/*"]

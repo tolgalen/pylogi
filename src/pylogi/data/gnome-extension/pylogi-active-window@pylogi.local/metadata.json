@@ -1,0 +1,7 @@
+{
+  "uuid": "pylogi-active-window@pylogi.local",
+  "name": "pyLogi active window",
+  "description": "Tells pyLogi which application has the focus (per-application button profiles). Exposes org.pylogi.ActiveWindow.Get on the session bus; nothing else.",
+  "shell-version": ["45", "46", "47", "48", "49", "50", "51"],
+  "version": 1
+}

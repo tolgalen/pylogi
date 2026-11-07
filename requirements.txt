@@ -1,0 +1,6 @@
+# Runtime dependencies of pyLogi (installed into the application's own virtual environment by the launchers).
+PySide6-Essentials>=6.5
+# QtMultimedia (webcam live preview) lives in the add-ons package
+PySide6-Addons>=6.5
+# HID transport where the kernel's /dev/hidraw is not available (Windows, macOS)
+hidapi>=0.14; sys_platform != "linux"

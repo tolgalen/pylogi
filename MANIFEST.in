@@ -1,0 +1,2 @@
+include LICENSE README.md THIRD_PARTY.md
+recursive-include src/pylogi/data *

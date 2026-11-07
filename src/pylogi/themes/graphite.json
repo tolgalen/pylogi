@@ -1,0 +1,35 @@
+{
+ "_meta": {
+  "id": "graphite",
+  "name": "Graphite"
+ },
+ "dark": {
+  "BG": "#1c1c1e",
+  "PANEL": "#242426",
+  "CARD": "#2c2c2e",
+  "CARD_HI": "#38383a",
+  "BORDER": "#3d3d40",
+  "BORDER_HI": "#636366",
+  "TEXT": "#f5f5f7",
+  "MUTED": "#9b9ba1",
+  "NAV": "#2b3a57",
+  "GROOVE": "#2b3345",
+  "GROOVE_OFF": "#3a3a3d",
+  "HANDLE": "#111113",
+  "HANDLE_RING": "#26262a",
+  "SWITCH_OFF": "#4a4a4d"
+ },
+ "light": {
+  "BG": "#e9e9ec",
+  "PANEL": "#f4f4f6",
+  "CARD": "#fbfbfc",
+  "CARD_HI": "#ececef",
+  "BORDER": "#d6d6da",
+  "BORDER_HI": "#9a9aa2",
+  "MUTED": "#68686f",
+  "NAV": "#d9e5fb",
+  "GROOVE": "#d6dded",
+  "GROOVE_OFF": "#dcdce0",
+  "SWITCH_OFF": "#bdbdc4"
+ }
+}

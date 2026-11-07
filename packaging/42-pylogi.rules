@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 pyLogi contributors
+# Give the logged-in user access to Logitech HID++ interfaces (USB and Bluetooth).
+# Install: sudo cp packaging/42-pylogi.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger
+ACTION=="remove", GOTO="pylogi_end"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", TAG+="uaccess"
+SUBSYSTEM=="hidraw", KERNELS=="0005:046D:*", TAG+="uaccess"
+LABEL="pylogi_end"
+
+# Software actions for mouse buttons (shortcuts, media keys...) create a virtual keyboard/mouse.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

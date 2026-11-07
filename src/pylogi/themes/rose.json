@@ -1,0 +1,41 @@
+{
+ "_meta": {
+  "id": "rose",
+  "name": "Rose"
+ },
+ "dark": {
+  "BG": "#1c1417",
+  "PANEL": "#241a1e",
+  "CARD": "#2c2025",
+  "CARD_HI": "#38292f",
+  "BORDER": "#47343b",
+  "BORDER_HI": "#785c66",
+  "TEXT": "#f9f2f4",
+  "MUTED": "#b3a0a7",
+  "NAV": "#4a2233",
+  "GROOVE": "#3a1e2b",
+  "GROOVE_OFF": "#47363d",
+  "HANDLE": "#12080c",
+  "HANDLE_RING": "#2e1220",
+  "SWITCH_OFF": "#54424a",
+  "ACCENT": "#e11d48",
+  "ACCENT_HI": "#fb7185",
+  "ACCENT_DIM": "#881337"
+ },
+ "light": {
+  "BG": "#f6ebee",
+  "PANEL": "#fbf4f6",
+  "CARD": "#fffcfd",
+  "CARD_HI": "#f6ebee",
+  "BORDER": "#e6d4da",
+  "BORDER_HI": "#a98f98",
+  "MUTED": "#705d64",
+  "NAV": "#fddbe4",
+  "GROOVE": "#f7d6df",
+  "GROOVE_OFF": "#eadce0",
+  "SWITCH_OFF": "#d0bdc4",
+  "ACCENT": "#e11d48",
+  "ACCENT_HI": "#be123c",
+  "ACCENT_DIM": "#fecdd3"
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "_meta": {
+  "id": "sunset",
+  "name": "Sunset"
+ },
+ "dark": {
+  "BG": "#1b1613",
+  "PANEL": "#231c18",
+  "CARD": "#2a221d",
+  "CARD_HI": "#362b24",
+  "BORDER": "#43362d",
+  "BORDER_HI": "#74604f",
+  "TEXT": "#f8f3ee",
+  "MUTED": "#b0a195",
+  "NAV": "#4a2d17",
+  "GROOVE": "#3a2616",
+  "GROOVE_OFF": "#473a30",
+  "HANDLE": "#120c07",
+  "HANDLE_RING": "#2e1c0e",
+  "SWITCH_OFF": "#52443a",
+  "ACCENT": "#ea580c",
+  "ACCENT_HI": "#fb923c",
+  "ACCENT_DIM": "#7c2d12"
+ },
+ "light": {
+  "BG": "#f4ece5",
+  "PANEL": "#faf5f0",
+  "CARD": "#fffdfb",
+  "CARD_HI": "#f4ece5",
+  "BORDER": "#e3d6ca",
+  "BORDER_HI": "#a99886",
+  "MUTED": "#6f6256",
+  "NAV": "#fde1cc",
+  "GROOVE": "#f5dcc7",
+  "GROOVE_OFF": "#e8ddd3",
+  "SWITCH_OFF": "#cdbfb2",
+  "ACCENT": "#ea580c",
+  "ACCENT_HI": "#c2410c",
+  "ACCENT_DIM": "#fed7aa"
+ }
+}

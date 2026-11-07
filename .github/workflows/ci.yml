@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 pyLogi contributors
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.10", "3.12", "3.13"]
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python }}"}
+      - name: System libraries for Qt
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon0 libdbus-1-3 libfontconfig1 libgl1
+      - run: pip install -e . build
+      - run: python scripts/lint.py
+      - run: python scripts/i18n_tool.py check
+      - run: python scripts/gen_docs.py --check
+      - run: python -I -m unittest discover -s tests
+      - run: python -m build --wheel
