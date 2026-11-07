@@ -3,7 +3,7 @@
 """'Device' section: details, Easy-Switch channels, keyboard keys and configuration."""
 from __future__ import annotations
 
-
+from pathlib import Path
 from PySide6.QtCore import QUrl, Qt, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QInputDialog,
@@ -338,6 +338,7 @@ def keys_card(dev: Device) -> QFrame:
 class ConfigCard(QFrame):
     settings_requested = Signal()
     remove_requested = Signal(object)
+    picture_requested = Signal(object, bool)          # (device, back to the original picture?)
 
     def __init__(self, dev: Device, cfg: Config):
         super().__init__()
@@ -376,6 +377,28 @@ class ConfigCard(QFrame):
         row.addWidget(self.manage)
         lay.addLayout(row)
 
+        prow = QHBoxLayout()
+        pcol = QVBoxLayout()
+        pcol.setSpacing(1)
+        pt = QLabel(tr("Device picture"))
+        pt.setStyleSheet("font-size:15px;")
+        self.pic_state = QLabel("")
+        self.pic_state.setObjectName("muted")
+        self.pic_state.setStyleSheet("font-size:12px;")
+        self.pic_state.setWordWrap(True)
+        pcol.addWidget(pt)
+        pcol.addWidget(self.pic_state)
+        prow.addLayout(pcol, 1)
+        self.pic_set = QPushButton(tr("Choose picture…"))
+        self.pic_set.setToolTip(tr("Use your own picture for this device instead of the catalog photo. It becomes the default one."))
+        self.pic_set.clicked.connect(lambda: self._picture(False))
+        self.pic_reset = QPushButton(tr("Use the original picture"))
+        self.pic_reset.clicked.connect(lambda: self._picture(True))
+        prow.addWidget(self.pic_set)
+        prow.addWidget(self.pic_reset)
+        lay.addLayout(prow)
+        self._picture_state()
+
         self.facts = QVBoxLayout()
         lay.addLayout(self.facts)
         self._facts()
@@ -394,6 +417,19 @@ class ConfigCard(QFrame):
         rm.setIcon(icons.icon("plug", theme.BAD, 16))
         rm.clicked.connect(lambda: self.remove_requested.emit(self.dev))
         lay.addWidget(rm)
+
+    def _own_picture(self) -> str:
+        return (self.cfg.get("pictures", {}) or {}).get(self.dev.device_key(), "")
+
+    def _picture_state(self) -> None:
+        own = self._own_picture()
+        self.pic_state.setText(tr("Custom picture (default for this device)") + f": {Path(own).name}" if own
+                               else tr("Catalog photo or drawn icon"))
+        self.pic_reset.setEnabled(bool(own))
+
+    def _picture(self, reset: bool) -> None:
+        self.picture_requested.emit(self.dev, reset)       # handled synchronously by the main window
+        self._picture_state()
 
     def _facts(self) -> None:
         while self.facts.count():
@@ -438,6 +474,7 @@ class ConfigCard(QFrame):
 class DetailsPage(QScrollArea):
     settings_requested = Signal()
     remove_requested = Signal(object)
+    picture_requested = Signal(object, bool)
 
     def __init__(self, dev: Device, cfg: Config, extra_cards: list[QWidget] | None = None, history=None):
         super().__init__()
@@ -455,6 +492,7 @@ class DetailsPage(QScrollArea):
         conf = ConfigCard(dev, cfg)
         conf.settings_requested.connect(self.settings_requested)
         conf.remove_requested.connect(self.remove_requested)
+        conf.picture_requested.connect(self.picture_requested)
         cards.append(conf)
         self.cards = cards
         self._columns: list[QWidget] = []

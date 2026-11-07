@@ -187,6 +187,7 @@ class MainWindow(QMainWindow):
         self.page.back.connect(self._home)
         self.page.settings_requested.connect(lambda: SettingsDialog(self).exec())
         self.page.remove_requested.connect(self.remove_device)
+        self.page.picture_requested.connect(self.choose_picture)
 
     def show_help(self, section: str | None = None) -> None:
         HelpDialog(self, section if isinstance(section, str) else None).exec()

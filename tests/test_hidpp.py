@@ -506,3 +506,18 @@ class BoltPairingTests(unittest.TestCase):
         b.feed(self.rep(0x54, 0x01, [2]))
         self.assertIn("failed", b.error)
         self.assertIsNone(b.new_slot)
+
+
+class ImageMatchSizeSuffixTests(unittest.TestCase):
+    """The device reports "Signature M650" while the catalog names it "Signature M650 L"."""
+    CATALOG = {
+        "signature_m650": {"type": "MOUSE", "displayName": "Signature M650 L", "modelIds": ["2b02a"]},
+        "signature_m650_for_business": {"type": "MOUSE", "displayName": "Signature M650 For Business",
+                                        "modelIds": ["2b032"]},
+    }
+
+    def test_trailing_size_letter(self):
+        from pylogi.core.images import match_device
+        self.assertEqual(match_device(self.CATALOG, "Signature M650", "mouse", ["b039"]), "signature_m650")
+        self.assertEqual(match_device(self.CATALOG, "Signature M650 For Business", "mouse", []),
+                         "signature_m650_for_business")

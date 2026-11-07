@@ -28,7 +28,7 @@ It talks to the devices directly with the HID++ protocol and to webcams through 
 | Area | What you can do |
 |---|---|
 | Devices | Mice, keyboards, webcams; Unifying, Bolt, LIGHTSPEED and Nano receivers; Bluetooth LE and wired devices. Battery, connection and online state; hot-plug aware. |
-| Overview | Grid, list or grouped-by-category views; battery and connection badges; red border when offline; product photos (optional download) or your own picture. |
+| Overview | Grid, list or grouped-by-category views; battery and connection badges; red border when offline; product photos (optional download) or your own picture, chosen from the card menu or from the device's *Configuration* (it becomes that device's default; the photo matching also copes with catalog names such as "Signature M650 L"). |
 | Buttons | Photo of the mouse with a callout per button (positions from the product catalog). Each button can be left alone, remapped to another button inside the mouse, or bound to a **software action**: keyboard shortcut, media key, mouse click, scroll step, typed text, command, DPI change, or disabled. |
 | Profiles per application | A *Default* profile plus one profile per application; profiles inherit from *Default*. Switches with the focused window (X11/XWayland, or GNOME/Wayland with the helper extension). |
 | Pointer | DPI, report rate, SmartShift, high-resolution scrolling and wheel inversion. |

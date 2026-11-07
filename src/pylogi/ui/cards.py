@@ -792,11 +792,7 @@ class BoltPairDialog(QDialog):
         lay.addLayout(row)
         self.done = False
         self.elapsed = 0.0
-        self.session = guarded(self, dev.bolt_begin, self.TIMEOUT)
-        if self.session is None:
-            self.done = True
-            QTimer.singleShot(0, self.reject)
-            return
+        self.session = dev.bolt_begin(self.TIMEOUT)          # returns at once: the work happens on a thread
         self.text.setText(self._searching())
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
@@ -810,14 +806,12 @@ class BoltPairDialog(QDialog):
     def _tick(self) -> None:
         s = self.session
         self.elapsed += 0.3
-        try:
-            self.dev.bolt_step()
-        except Exception as e:
-            return self._finish(str(e))
         if s.new_slot is not None:
             return self._finish(tr("Device paired."), ok=True)
         if s.error:
             return self._finish(tr("Pairing failed") + f": {tr(_BOLT_ERRORS.get(s.error, s.error))}")
+        if s.finished:
+            return self._finish(tr("No device found. Check that it is in pairing mode and try again."))
         if s.passkey:
             if s.type_passkey:
                 msg = tr("Type {code} on the device and then press Enter.").format(code=s.passkey)
@@ -828,7 +822,7 @@ class BoltPairDialog(QDialog):
             self.text.setText(f"{s.name}\n\n{msg}")
         elif s.requested:
             self.text.setText(tr("Found {name}. Pairing…").format(name=s.name))
-        elif self.elapsed > self.TIMEOUT + 5:
+        elif self.elapsed > self.TIMEOUT + 8:
             self._finish(tr("No device found. Check that it is in pairing mode and try again."))
 
     def _finish(self, msg: str, ok: bool = False) -> None:

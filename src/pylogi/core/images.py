@@ -27,6 +27,7 @@ from PySide6.QtGui import QPixmap
 BASES = ["https://assets.openlogi.org", "https://v0-1.openlogi-assets.pages.dev"]
 INDEX_MAX_AGE = 7 * 24 * 3600
 PREFERRED = ("front_core.png", "front.png")
+SIZE_TOKENS = ("s", "m", "l", "xl")      # trailing size letter of some catalog names
 TYPES = {"mouse": "MOUSE", "trackball": "MOUSE", "keyboard": "KEYBOARD",
          "numpad": "KEYBOARD", "webcam": "CAMERA"}
 
@@ -74,6 +75,9 @@ def match_device(devices: dict, name: str, kind: str, ids: list[str]) -> Optiona
             w = _words(label)
             if _contains(hay, w):
                 name_score = max(name_score, 10 * len(w) + len("".join(w)))
+            elif len(w) > 2 and w[-1] in SIZE_TOKENS and _contains(hay, w[:-1]):
+                # the device reports "Signature M650", the catalog says "Signature M650 L"
+                name_score = max(name_score, 10 * (len(w) - 1) + len("".join(w[:-1])) - 1)
         if name_score:
             kw = _words(key)
             score = name_score * 10 + (len(kw) * 3 if _contains(hay, kw) else 0) + (5 if id_hit else 0)

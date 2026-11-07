@@ -45,6 +45,7 @@ class BoltPairing:
         self.new_slot: Optional[int] = None
         self.error: Optional[str] = None
         self.requested = False            # pairing with the announced device has been asked for
+        self.finished = False             # the worker has stopped
 
     @property
     def device_ready(self) -> bool:

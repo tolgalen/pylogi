@@ -11,7 +11,7 @@ from typing import Optional
 from PySide6.QtCore import QObject, Signal
 
 from ..hidpp.constants import RECEIVERS
-from ..hidpp.protocol import Channel, Hidpp20Device, HidppError
+from ..hidpp.protocol import Channel, Hidpp20Device, HidppError, NoReply
 from ..hidpp.receiver import Receiver
 from ..hidpp.transport import HidInfo, enumerate_hidpp, open_transport
 from .device import Device, HidppDevice
@@ -60,33 +60,53 @@ class ReceiverDevice(Device):
         self.rx.open_pairing(timeout)
         self._slots_t = 0.0
 
-    # -- Bolt: the receiver announces devices in pairing mode; see hidpp.receiver.BoltPairing
+    # -- Bolt: the receiver announces devices in pairing mode; see hidpp.receiver.BoltPairing.
+    # All receiver I/O runs on a worker thread so the window never blocks on a slow or silent receiver.
     def bolt_begin(self, timeout: int = 30):
         from ..hidpp.receiver import BoltPairing
+        self.bolt_end()
         self.bolt = BoltPairing()
+        self._bolt_stop = threading.Event()
         self._bolt_listener = lambda _ch, m: self.bolt.feed(m)
         self.rx.ch.add_listener(self._bolt_listener)
-        self.rx.bolt_discover(timeout)
+        threading.Thread(target=self._bolt_run, args=(self.bolt, self._bolt_stop, self._bolt_listener, timeout),
+                         daemon=True, name="bolt-pairing").start()
         return self.bolt
 
-    def bolt_step(self) -> None:
-        """Called regularly while pairing: asks for pairing as soon as a device has announced itself."""
-        b = self.bolt
-        if b.device_ready:
-            b.requested = True
-            self.rx.bolt_pair(b.address, b.authentication, 20 if b.keyboard else 10)
+    def _bolt_run(self, b, stop, listener, timeout: int) -> None:
+        rx = self.rx
+        try:
+            try:
+                rx.bolt_discover(timeout)
+            except NoReply:
+                pass                                   # the receiver may only answer with notifications
+            deadline = time.monotonic() + timeout + 5
+            while not stop.wait(0.3) and time.monotonic() < deadline:
+                if b.device_ready:
+                    b.requested = True
+                    try:
+                        rx.bolt_pair(b.address, b.authentication, 20 if b.keyboard else 10)
+                    except NoReply:
+                        pass
+                if b.new_slot is not None or b.error:
+                    break
+        except (HidppError, OSError) as e:
+            b.error = str(e)
+        finally:
+            rx.ch.remove_listener(listener)
+            if b.new_slot is None:                     # leave the receiver as we found it
+                for fn in (rx.bolt_cancel, lambda: rx.bolt_discover(cancel=True)):
+                    try:
+                        fn()
+                    except (HidppError, OSError):
+                        pass
+            self._slots_t = 0.0
+            b.finished = True
 
     def bolt_end(self) -> None:
-        listener = getattr(self, "_bolt_listener", None)
-        if listener:
-            self.rx.ch.remove_listener(listener)
-            self._bolt_listener = None
-        for fn in (lambda: self.rx.bolt_cancel(), lambda: self.rx.bolt_discover(cancel=True)):
-            try:
-                fn()
-            except HidppError:
-                pass
-        self._slots_t = 0.0
+        stop = getattr(self, "_bolt_stop", None)
+        if stop is not None:
+            stop.set()
 
     def unpair(self, slot: int) -> None:
         self.rx.unpair(slot)

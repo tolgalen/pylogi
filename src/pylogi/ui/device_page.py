@@ -224,7 +224,7 @@ class DevicePage(QWidget):
     back = Signal()
     settings_requested = Signal()
     remove_requested = Signal(object)
-    remove_requested = Signal(object)
+    picture_requested = Signal(object, bool)
 
     SECTIONS = {  # key -> (label, glyph)
         "buttons": (N_("Buttons"), "click"),
@@ -365,6 +365,7 @@ class DevicePage(QWidget):
         page = DetailsPage(dev, self.cfg, extra, self.history)
         page.settings_requested.connect(self.settings_requested)
         page.remove_requested.connect(self.remove_requested)
+        page.picture_requested.connect(self.picture_requested)
         return page
 
     def _go(self, key: str) -> None:
