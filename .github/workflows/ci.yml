@@ -19,6 +19,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.10", "3.12", "3.13", "3.14"]
     env:
@@ -32,12 +33,11 @@ jobs:
       - run: pip install -e . build coverage
       - run: python scripts/gen_docs.py --check
       - name: Tests with coverage
-        # scripts/run_tests.py exits without Qt's teardown; coverage needs a normal exit, so run unittest directly
+        # run_tests.py leaves without Qt's interpreter-exit teardown (it segfaults after a green run)
         run: |
-          coverage run -m unittest discover -s tests -t tests
+          python -I scripts/run_tests.py --coverage
           coverage report --skip-covered | tail -n 40
           coverage xml
-      - run: python -I scripts/run_tests.py
       - uses: actions/upload-artifact@v4
         if: matrix.python == '3.13'
         with: {name: coverage, path: coverage.xml}

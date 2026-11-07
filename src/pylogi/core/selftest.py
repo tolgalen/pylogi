@@ -11,8 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from . import debuglog as _debuglog
 from . import backup
+from . import debuglog as _debuglog
 from .device import Device
 
 PASS, FAIL, SKIP, UNCONFIRMED, ERROR = "PASS", "FAIL", "SKIP", "UNCONFIRMED", "ERROR"

@@ -7,7 +7,6 @@ pyLogi has to keep running for them to play; stopping one hands the keys back to
 `frame()` is pure (time in, colours out) and is what the tests exercise."""
 from __future__ import annotations
 
-from . import debuglog as _debuglog
 import colorsys
 import math
 import os
@@ -19,6 +18,7 @@ from collections import deque
 from typing import Callable
 
 from ..i18n import N_
+from . import debuglog as _debuglog
 
 RGB = tuple[int, int, int]
 Positions = dict[int, tuple[float, float]]            # HID usage -> (x, y) of the key centre, in key units

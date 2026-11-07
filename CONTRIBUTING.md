@@ -23,8 +23,7 @@ python scripts/gen_docs.py --check
 QT_QPA_PLATFORM=offscreen python -I scripts/run_tests.py
 ```
 
-Coverage: `QT_QPA_PLATFORM=offscreen coverage run -m unittest discover -s tests -t tests && coverage report`.
-(`run_tests.py` leaves the process without Qt's interpreter-exit teardown, which coverage needs, hence the direct call.)
+Coverage: `QT_QPA_PLATFORM=offscreen python -I scripts/run_tests.py --coverage && coverage report`.
 
 ## Code
 

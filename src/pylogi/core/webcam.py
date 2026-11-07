@@ -9,13 +9,17 @@ from __future__ import annotations
 
 import ctypes
 import errno
-import fcntl
 import glob
 import os
 from dataclasses import dataclass
 
 from ..i18n import N_
 from .device import WEBCAM, Device
+
+try:
+    import fcntl          # Linux only (V4L2); elsewhere there are no /dev/video* nodes to open
+except ImportError:       # pragma: no cover
+    fcntl = None  # type: ignore[assignment]
 
 V4L2_CTRL_FLAG_DISABLED = 0x0001
 V4L2_CTRL_FLAG_READ_ONLY = 0x0004

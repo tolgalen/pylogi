@@ -7,6 +7,7 @@ Destroying Qt widgets while Python finalises sometimes crashes (SIGSEGV / SIGABR
 passed, which would turn a green run red.  The exit status here is the real test result.
 
     python -I scripts/run_tests.py
+    python -I scripts/run_tests.py --coverage      # also writes .coverage (pip install coverage)
 """
 import os
 import sys
@@ -14,8 +15,16 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+cov = None
+if "--coverage" in sys.argv:
+    import coverage
+    cov = coverage.Coverage(config_file=str(ROOT / "pyproject.toml"))
+    cov.start()
 suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"), top_level_dir=str(ROOT / "tests"))
 result = unittest.TextTestRunner(verbosity=1).run(suite)
+if cov is not None:
+    cov.stop()
+    cov.save()
 sys.stdout.flush()
 sys.stderr.flush()
 os._exit(0 if result.wasSuccessful() else 1)

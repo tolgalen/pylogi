@@ -20,8 +20,6 @@ Binding = JSON dict, keyed by button (control id) inside a profile:
 """
 from __future__ import annotations
 
-from . import debuglog as _debuglog
-import fcntl
 import os
 import shlex
 import shutil
@@ -34,6 +32,12 @@ from typing import Callable, Optional
 from ..hidpp import features as ft
 from ..hidpp.constants import F
 from ..i18n import N_
+from . import debuglog as _debuglog
+
+try:
+    import fcntl          # Linux only (/dev/uinput); on other systems the uinput device simply cannot be opened
+except ImportError:       # pragma: no cover
+    fcntl = None  # type: ignore[assignment]
 
 # --------------------------------------------------------------- key tables (evdev codes)
 _LETTERS = dict(zip("QWERTYUIOP", range(16, 26))) | dict(zip("ASDFGHJKL", range(30, 39))) | \

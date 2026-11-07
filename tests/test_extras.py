@@ -413,6 +413,7 @@ class ConflictTests(unittest.TestCase):
         (root / "self").mkdir()
         return root
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "process detection reads /proc (Linux only)")
     def test_known_managers_are_found(self):
         from pylogi.core.conflicts import running_managers
         root = self._proc(["bash", "openlogi-agent", "python3", "solaar", "openlogi-overla", "solaar"])

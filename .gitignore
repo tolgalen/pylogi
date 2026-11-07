@@ -7,3 +7,8 @@ dist/
 *.egg-info/
 dist-fedora45/
 .pytest_cache/
+
+# coverage
+.coverage
+coverage.xml
+htmlcov/
