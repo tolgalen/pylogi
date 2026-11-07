@@ -96,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
 
     app = QApplication(sys.argv[:1])
     app.setApplicationName("pyLogi")
+    app.setDesktopFileName("pylogi")      # Wayland app_id: lets the dock match pylogi.desktop and show its icon
     from .ui.branding import app_icon
     icon = app_icon()
     if not icon.isNull():

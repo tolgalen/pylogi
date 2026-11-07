@@ -36,7 +36,7 @@ It talks to the devices directly with the HID++ protocol and to webcams through 
 | Lighting | Per-key RGB map that matches your keyboard (ANSI/ISO and TKL/full size are detected from the keys the keyboard reports, with manual override), zone colours and backlight; colours are re-sent whenever the keyboard reconnects. A fixed colour can also be stored in any onboard profile (device memory, verified on a G915 TKL); per-key maps cannot. |
 | Webcams | Live preview and the V4L2 controls (zoom, pan/tilt, focus, exposure, white balance, image) with *Auto* chips and presets (Default, Streaming, Video call, your own). |
 | Easy-Switch | See the computers a device is paired with, switch host, rename channels. Also Fn lock on keyboards that support it. |
-| Pairing | Open pairing and unpair on Unifying / LIGHTSPEED / Nano receivers; shortcut to the system's Bluetooth settings. |
+| Pairing | Open pairing and unpair on Unifying / LIGHTSPEED / Nano receivers; Bolt pairing with discovery and passkey (written from the documented protocol, not yet verified on hardware); shortcut to the system's Bluetooth settings. |
 | Removing devices | Unpair, remove the Bluetooth pairing, forget settings, hide, or delete from pyLogi (leaves no trace). |
 | Safety | Full device snapshots (`--backup`), write verification (`--self-test`), HID++ frame trace (`--trace-hid`), warning when another manager (OpenLogi, Solaar, ...) runs. |
 | Automation | `--list --json`, `--get`, `--set` on the command line; export / import of the whole configuration. |
@@ -107,7 +107,7 @@ sudo cp packaging/42-pylogi.rules /etc/udev/rules.d/
 sudo udevadm control --reload && sudo udevadm trigger     # then re-plug the devices
 ```
 
-Optional: `pylogi --install-launcher` (application menu entry and icon; it starts the launcher, so the private environment
+Optional (each one also has a switch in **Settings**): `pylogi --install-launcher` (application menu entry and icon; it starts the launcher, so the private environment
 is used), `pylogi --autostart on` (start minimised with the session), and, for per-application profiles on GNOME/Wayland,
 `pylogi --install-gnome-extension` followed by a new login and `gnome-extensions enable pylogi-active-window@pylogi.local`.
 
@@ -131,7 +131,7 @@ command-line option, file locations and troubleshooting. It can be saved as a PD
 
 1. The **Devices** screen lists what is connected. Click a card to open it; the **...** menu of a card rescans, changes
    the picture or removes the device. **Add** opens receivers for pairing; **Settings** holds language, appearance,
-   theme, photos, autostart, tray behaviour and configuration export/import.
+   theme, photos, autostart, application-menu launcher, GNOME helper extension, tray behaviour and configuration export/import, organised in tabs. **Receivers** shows a tree of every receiver with its details and the devices connected to it.
 2. A **device page** has a sidebar with the sections that device supports: Buttons, Pointer, Profiles, Lighting,
    Camera and Device (details, Easy-Switch, Fn lock, configuration).
 3. Changes apply immediately and are remembered per device; pyLogi writes them again when a device reconnects
@@ -297,7 +297,7 @@ reach every application. **Not tested on real hardware:** host switching (it wou
 unpairing and Bluetooth removal (destructive; checked against recorded frames only), the GNOME helper extension (GNOME
 loads new extensions only after a login), Windows and macOS.
 
-Not implemented: gestures and the Actions Ring, Bolt pairing (needs a passkey flow), input injection on Windows and macOS,
+Not implemented: gestures and the Actions Ring, input injection on Windows and macOS,
 Litra lights, headsets, thumb wheel, vendor-specific UVC controls.
 
 Known behaviours: button diversions are volatile and are re-applied on reconnect; typed text assumes a US layout; per-app

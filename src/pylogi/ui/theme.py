@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtCore import QEvent, QObject, QPointF, QRectF, Qt
 from PySide6.QtGui import (QBrush, QColor, QGuiApplication, QPainter, QPainterPath,
                            QPalette, QPen, QPixmap)
 
@@ -109,9 +109,30 @@ def resolve_mode(appearance: str) -> str:
     return "light" if scheme == Qt.ColorScheme.Light else "dark"      # unknown -> the dark look
 
 
+class _TipWrap(QObject):
+    """Wrap plain-text tooltips on several narrow lines (Qt only wraps rich text)."""
+    WIDTH = 34
+
+    def eventFilter(self, obj, ev):
+        if ev.type() == QEvent.ToolTipChange and hasattr(obj, "toolTip"):
+            text = obj.toolTip()
+            if text and not text.startswith("<") and len(text) > self.WIDTH:
+                import html
+                import textwrap
+                rich = "<br>".join(html.escape(t) for t in textwrap.wrap(text, self.WIDTH))
+                obj.setToolTip("<span>" + rich + "</span>")
+        return False
+
+
+_TIPWRAP = None
+
+
 def apply(app, appearance: str = "system", theme_id: str = "default") -> str:
     """Activate a palette and restyle the application; returns the resolved mode."""
-    global MODE, THEME, QSS
+    global MODE, THEME, QSS, _TIPWRAP
+    if _TIPWRAP is None:
+        _TIPWRAP = _TipWrap(app)
+        app.installEventFilter(_TIPWRAP)
     mode = resolve_mode(appearance)
     if theme_id not in available_themes():
         theme_id = "default"
@@ -240,7 +261,7 @@ QScrollBar::handle:vertical {{ background: {BORDER}; border-radius: 5px; min-hei
 QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; }}
 QProgressBar {{ background: {BORDER}; border: none; border-radius: 4px; max-height: 8px; }}
 QProgressBar::chunk {{ background: {ACCENT}; border-radius: 4px; }}
-QToolTip {{ background: {PANEL}; color: {TEXT}; border: 1px solid {BORDER}; }}
+QToolTip {{ background: #fff8c4; color: #2b2b2b; border: 1px solid #d8c968; border-radius: 0; padding: 4px 6px; }}
 """
 
 

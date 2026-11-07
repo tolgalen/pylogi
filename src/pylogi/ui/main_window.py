@@ -24,7 +24,7 @@ from ..core.device import Device
 from ..i18n import set_language, tr
 from . import theme
 from .about import AboutDialog
-from .dialogs import AddDialog, RemoveDialog, SettingsDialog
+from .dialogs import AddDialog, ReceiversDialog, RemoveDialog, SettingsDialog
 from .help import HelpDialog
 from .device_page import DevicePage
 from .home import HomePage
@@ -182,6 +182,7 @@ class MainWindow(QMainWindow):
         self.home.picture_requested.connect(self.choose_picture)
         self.home.settings_requested.connect(lambda: SettingsDialog(self).exec())
         self.home.add_requested.connect(lambda: AddDialog(self).exec())
+        self.home.receivers_requested.connect(lambda: ReceiversDialog(self).exec())
         self.page.history = getattr(self.manager, "history", None)
         self.page.back.connect(self._home)
         self.page.settings_requested.connect(lambda: SettingsDialog(self).exec())

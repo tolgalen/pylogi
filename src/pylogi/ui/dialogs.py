@@ -4,10 +4,11 @@
 from __future__ import annotations
 
 from PySide6.QtWidgets import (QComboBox, QDialog, QGridLayout, QHBoxLayout,
-                               QLabel, QPushButton, QScrollArea, QSpinBox, QVBoxLayout, QWidget)
+                               QLabel, QPushButton, QScrollArea, QSpinBox, QTabWidget, QTreeWidget,
+                               QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from ..i18n import N_, available_languages, tr
-from . import theme
+from . import icons, theme
 from .cards import ReceiverCard
 from .widgets import Switch, muted
 
@@ -17,13 +18,26 @@ class SettingsDialog(QDialog):
         super().__init__(main)
         self.main = main
         self.setWindowTitle(tr("Settings"))
-        self.setMinimumWidth(420)
+        self.setMinimumWidth(460)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(22, 20, 22, 20)
         lay.setSpacing(14)
         title = QLabel(tr("Settings"))
         title.setObjectName("title")
         lay.addWidget(title)
+        outer = lay
+        tabs = QTabWidget()
+        outer.addWidget(tabs)
+        pages = {}
+        for key, label in (("general", N_("General")), ("startup", N_("Start-up and tray")),
+                           ("notify", N_("Notifications")), ("advanced", N_("Advanced"))):
+            page = QWidget()
+            pl = QVBoxLayout(page)
+            pl.setContentsMargins(4, 14, 4, 6)
+            pl.setSpacing(12)
+            tabs.addTab(page, tr(label))
+            pages[key] = pl
+        lay = pages["general"]
 
         grid = QGridLayout()
         grid.setVerticalSpacing(12)
@@ -60,11 +74,22 @@ class SettingsDialog(QDialog):
         self.photos.toggled.connect(self._photos)
         lay.addWidget(self.photos)
         lay.addWidget(muted(tr("Photos are downloaded from the OpenLogi asset mirror and cached locally.")))
+        lay = pages["startup"]
         self.autostart = Switch(tr("Start pyLogi with the desktop session"))
         from ..core import desktop
         self.autostart.setChecked(desktop.autostart_enabled())
         self.autostart.toggled.connect(desktop.set_autostart)
         lay.addWidget(self.autostart)
+        self.launcher = Switch(tr("Show pyLogi in the application menu"))
+        self.launcher.setChecked(desktop.launcher_installed())
+        self.launcher.toggled.connect(desktop.set_launcher)
+        lay.addWidget(self.launcher)
+        if desktop.gnome_available():
+            self.gnome = Switch(tr("GNOME helper extension (per-application profiles on Wayland)"))
+            self.gnome.setChecked(desktop.gnome_extension_installed())
+            self.gnome.toggled.connect(desktop.set_gnome_extension)
+            lay.addWidget(self.gnome)
+            lay.addWidget(muted(tr("After installing it, log out and in again so GNOME Shell loads it.")))
         self.tray = Switch(tr("Keep running in the tray when closed"))
         self.tray.setChecked(bool(main.cfg.get("close_to_tray", False)))
         self.tray.toggled.connect(lambda v: main.cfg.set("close_to_tray", v))
@@ -81,11 +106,15 @@ class SettingsDialog(QDialog):
         self.mono.setChecked(bool(main.cfg.get("tray_mono", False)))
         self.mono.toggled.connect(lambda v: (main.cfg.set("tray_mono", v), main.set_tray_icon()))
         lay.addWidget(self.mono)
+        lay.addStretch(1)
+        lay = pages["general"]
         self.remember = Switch(tr("Remember window size and position"))
         self.remember.setChecked(bool(main.cfg.get("remember_window", False)))
         self.remember.toggled.connect(lambda v: main.cfg.set("remember_window", v))
         lay.addWidget(self.remember)
+        lay.addStretch(1)
 
+        lay = pages["notify"]
         self.batt = Switch(tr("Notify when the battery is low"))
         self.batt.setChecked(bool(main.cfg.get("battery_alert", True)))
         lay.addWidget(self.batt)
@@ -119,6 +148,8 @@ class SettingsDialog(QDialog):
         self.conn.toggled.connect(lambda v: main.cfg.set("notify_connection", v))
         lay.addWidget(self.conn)
 
+        lay.addStretch(1)
+        lay = pages["advanced"]
         self.debug = Switch(tr("Record a debug log"))
         self.debug.setChecked(bool(main.cfg.get("debug_log", False)))
         lay.addWidget(self.debug)
@@ -156,7 +187,9 @@ class SettingsDialog(QDialog):
             hrow.addStretch(1)
             hrow.addWidget(show)
             lay.addLayout(hrow)
+        lay.addStretch(1)
 
+        lay = outer
         row = QHBoxLayout()
         help_btn = QPushButton(tr("Help"))
         help_btn.clicked.connect(lambda: (self.accept(), main.show_help("settings")))
@@ -169,6 +202,36 @@ class SettingsDialog(QDialog):
         close.clicked.connect(self.accept)
         row.addWidget(close)
         lay.addLayout(row)
+        self._tooltips(exp, imp)
+
+    def _tooltips(self, exp, imp) -> None:
+        """Explain every setting on hover."""
+        tips = [
+            (self.lang, tr("Language of the interface. Automatic follows the system language.")),
+            (self.appearance, tr("Light or dark look. System follows the operating system and changes with it.")),
+            (self.theme, tr("Colour theme of the application. Some themes also change the accent colour.")),
+            (self.photos, tr("Download product photos for your devices from the OpenLogi asset mirror and keep them in a local cache. Off = drawn icons only.")),
+            (self.autostart, tr("Start pyLogi, minimised to the tray, when you log in to the desktop.")),
+            (self.launcher, tr("Add or remove the pyLogi entry and icon in your application menu. No administrator rights needed.")),
+            (self.tray, tr("Closing the window keeps pyLogi running in the tray so software actions and application profiles keep working.")),
+            (self.hidden, tr("Start without showing a window or the start-up screen. Use the tray icon to open it.")),
+            (self.splash, tr("Show the logo screen while the devices are detected. Off = the window just appears when ready.")),
+            (self.mono, tr("Use a single-colour tray icon that blends in with the panel.")),
+            (self.remember, tr("Reopen the window with the size and position it had. Off = it always opens at 1200×800.")),
+            (self.batt, tr("Show a notification when a device battery falls to the chosen level.")),
+            (self.batt_pct, tr("Battery level that triggers the first low-battery notification.")),
+            (self.batt_crit, tr("Battery level that triggers the second, urgent notification.")),
+            (self.conn, tr("Show a notification each time a device goes offline or comes back.")),
+            (self.debug, tr("Write a debug log in the configuration folder to attach to a bug report. Serial numbers and your home folder are masked.")),
+            (self.debug_raw, tr("Also record every HID++ report in a separate file. The file can become large.")),
+            (self.debug_open, tr("Open the folder that contains the log files.")),
+            (exp, tr("Save the whole configuration to a file, for example to move it to another computer.")),
+            (imp, tr("Load a configuration file saved earlier with Export.")),
+        ]
+        if hasattr(self, "gnome"):
+            tips.append((self.gnome, tr("Install or remove the GNOME Shell extension that tells pyLogi which application has the focus. Needed for per-application profiles on Wayland; log out and in after installing.")))
+        for w, text in tips:
+            w.setToolTip(text)
 
     def _debug_changed(self, _v: bool = False) -> None:
         """Start / stop the debug log at once and remember the choice for the next start."""
@@ -232,6 +295,98 @@ class SettingsDialog(QDialog):
         if self.main.images:
             self.main.images.enabled = on
         self.main.refresh_home()
+
+
+class ReceiversDialog(QDialog):
+    """Every detected receiver with its details and the devices connected to it, as a tree."""
+
+    def __init__(self, main):
+        super().__init__(main)
+        self.main = main
+        self.setWindowTitle(tr("Receivers"))
+        self.resize(640, 560)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(22, 20, 22, 20)
+        lay.setSpacing(12)
+        title = QLabel(tr("Receivers"))
+        title.setObjectName("title")
+        lay.addWidget(title)
+        self.tree = QTreeWidget()
+        self.tree.setColumnCount(2)
+        self.tree.setHeaderLabels([tr("Item"), tr("Value")])
+        self.tree.setAlternatingRowColors(True)
+        self.tree.setUniformRowHeights(True)
+        self.tree.header().setStretchLastSection(True)
+        lay.addWidget(self.tree, 1)
+        row = QHBoxLayout()
+        refresh = QPushButton(tr("Refresh"))
+        refresh.clicked.connect(self._fill)
+        expand = QPushButton(tr("Expand all"))
+        expand.clicked.connect(self.tree.expandAll)
+        collapse = QPushButton(tr("Collapse all"))
+        collapse.clicked.connect(self.tree.collapseAll)
+        for b in (refresh, expand, collapse):
+            row.addWidget(b)
+        row.addStretch(1)
+        close = QPushButton(tr("Close"))
+        close.clicked.connect(self.accept)
+        row.addWidget(close)
+        lay.addLayout(row)
+        self._fill()
+        self.tree.expandToDepth(1)
+        self.tree.resizeColumnToContents(0)
+
+    @staticmethod
+    def _node(parent, name: str, value: str = "") -> QTreeWidgetItem:
+        item = QTreeWidgetItem(parent, [name, value])
+        return item
+
+    def _fill(self) -> None:
+        self.tree.clear()
+        devices = list(self.main.manager.devices)
+        receivers = [d for d in devices if d.kind == "receiver"]
+        if not receivers:
+            self._node(self.tree, tr("No receivers found"))
+            return
+        for r in receivers:
+            kids = [d for d in devices if getattr(d, "receiver", None) is r]
+            node = self._node(self.tree, r.name, (tr("1 device") if len(kids) == 1 else tr("{n} devices").format(n=len(kids))))
+            node.setIcon(0, icons.icon("plug", theme.ICON, 16))
+            rx = r.rx
+            pid = (r.model_ids or [""])[0]
+            for label, value in ((tr("Family"), rx.family),
+                                 (tr("Product ID"), f"0x{pid.upper()}" if pid else "—"),
+                                 (tr("Serial"), r.info.serial or "—"),
+                                 (tr("Port"), str(r.uid).removesuffix(":rx")),
+                                 (tr("Device slots"), str(rx.max_devices))):
+                self._node(node, label, value)
+            group = self._node(node, tr("Connected devices"), str(len(kids)))
+            for d in sorted(kids, key=lambda x: x.slot):
+                state = tr("Online") if d.online else tr("Offline")
+                dn = self._node(group, f"{d.slot}: {d.name}", state)
+                self._device_rows(dn, d)
+            listed = {d.slot for d in kids}
+            for text in r.slot_names:            # paired slots the receiver reports but that have no device object
+                num = text.split(":", 1)[0]
+                if num.isdigit() and int(num) not in listed:
+                    self._node(group, text, tr("Offline"))
+
+    def _device_rows(self, node, d) -> None:
+        i = d.info
+        rows = [(tr("Type"), tr(d.kind) if d.kind else "—"),
+                (tr("Connection"), d.connection),
+                (tr("Wireless product ID"), ", ".join(f"0x{m.upper()}" for m in d.model_ids) or "—")]
+        if d.battery is not None and d.battery.percent is not None:
+            rows.append((tr("Battery"), f"{d.battery.percent} %" + (" ⚡" if d.battery.charging else "")))
+        for label, value in ((tr("Serial"), i.serial), (tr("Unit ID"), i.unit), (tr("Firmware"), i.firmware),
+                             (tr("HID++ protocol"), i.protocol)):
+            if value:
+                rows.append((label, value))
+        for k, v in i.extra.items():
+            if k != "Features" and v:
+                rows.append((tr(k), v))
+        for label, value in rows:
+            self._node(node, label, value)
 
 
 class AddDialog(QDialog):

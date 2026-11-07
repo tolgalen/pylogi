@@ -472,3 +472,37 @@ class CameraWritePlanTests(CameraLogicTests):
             for name in ("Default", "Streaming", "Video call", "Default"):
                 page.apply_preset(name)
         warn.assert_not_called()
+
+
+class BoltPairingTests(unittest.TestCase):
+    """The Bolt pairing state machine fed with the receiver's reports."""
+
+    @staticmethod
+    def rep(sub, addr, data):
+        return bytes([0x11, 0xFF, sub, addr]) + bytes(data).ljust(16, b"\0")
+
+    def test_discovery_then_passkey_then_paired(self):
+        from pylogi.hidpp.receiver import BoltPairing
+        b = BoltPairing()
+        b.feed(self.rep(0x53, 0x00, [0]))
+        self.assertTrue(b.discovering)
+        addr = bytes([1, 2, 3, 4, 5, 6])
+        b.feed(self.rep(0x4F, 0x05, [0, 0, 0, 2, 0, 0, *addr, 0, 0, 0, 0x00]))
+        self.assertFalse(b.device_ready)               # the name has not arrived yet
+        b.feed(self.rep(0x4F, 0x05, [0, 1, 6, *b"MX Key"]))
+        self.assertEqual((b.kind, b.address, b.name), (2, addr, "MX Key"))
+        self.assertTrue(b.device_ready)
+        b.feed(self.rep(0x4F, 0x09, [9, 0, 0, 1, 0, 0, 9, 9, 9, 9, 9, 9]))   # another counter: ignored
+        self.assertEqual(b.address, addr)
+        b.feed(self.rep(0x4D, 0x00, b"000005"))
+        self.assertEqual(b.passkey_steps()[-3:], ["right", "left", "right"])
+        b.feed(self.rep(0x54, 0x02, [0, 0, 0, 0, 0, 0, 0, 3]))
+        self.assertEqual(b.new_slot, 3)
+        self.assertIsNone(b.error)
+
+    def test_error(self):
+        from pylogi.hidpp.receiver import BoltPairing
+        b = BoltPairing()
+        b.feed(self.rep(0x54, 0x01, [2]))
+        self.assertIn("failed", b.error)
+        self.assertIsNone(b.new_slot)

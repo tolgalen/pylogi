@@ -95,7 +95,8 @@ Habla directamente con los dispositivos (HID++), así que no necesitas ningún s
 </ul>
 
 <h2><a name="add-remove"></a>Añadir y eliminar dispositivos</h2>
-<p><b>Añadir</b> lista tus receptores. En los receptores Unifying, LIGHTSPEED y Nano, <b>Emparejar dispositivo</b> abre el emparejamiento durante 30 segundos: enciende el dispositivo nuevo o pulsa su botón de conexión. <b>Desemparejar</b> elimina una ranura. Los dispositivos Bluetooth se emparejan en los ajustes de Bluetooth del sistema (<b>Ajustes de Bluetooth&hellip;</b> los abre). El emparejamiento de dispositivos Bolt aún no está implementado.</p>
+<p><b>Receptores</b> (botón de la cabecera) muestra un árbol con cada receptor detectado &mdash; familia, ID de producto, número de serie, puerto y ranuras &mdash; y, debajo, los dispositivos conectados con su tipo, batería, número de serie, ID de unidad y protocolo. <b>Actualizar</b> vuelve a leer la lista.</p>
+<p><b>Añadir</b> lista tus receptores. En los receptores Unifying, LIGHTSPEED y Nano, <b>Emparejar dispositivo</b> abre el emparejamiento durante 30 segundos: enciende el dispositivo nuevo o pulsa su botón de conexión. <b>Desemparejar</b> elimina una ranura. Los dispositivos Bluetooth se emparejan en los ajustes de Bluetooth del sistema (<b>Ajustes de Bluetooth&hellip;</b> los abre). En los receptores Bolt, <b>Emparejar dispositivo</b> busca dispositivos en modo de emparejamiento (mantén pulsado el botón Easy-Switch tres segundos hasta que el LED parpadee rápido) y muestra la clave que hay que escribir en el teclado o los clics izquierdo / derecho que hay que hacer en el ratón. Este flujo se ha escrito a partir del protocolo documentado y puede necesitar ajustes en algunos dispositivos; si falla, usa los ajustes de Bluetooth del sistema.</p>
 <p><b>Eliminar&hellip;</b> ofrece:</p>
 <table>
 <tr><td><b>Desemparejar del receptor</b></td><td>Quita el dispositivo de su receptor. Pide confirmación y antes se hace una copia de seguridad. Hay que volver a emparejarlo para usarlo.</td></tr>
@@ -106,11 +107,14 @@ Habla directamente con los dispositivos (HID++), así que no necesitas ningún s
 </table>
 
 <h2><a name="settings"></a>Ajustes</h2>
+<p>Los ajustes se agrupan en pestañas: <b>General</b>, <b>Inicio y bandeja</b>, <b>Notificaciones</b> y <b>Avanzado</b>. Pasa el ratón sobre cualquier opción para ver una breve explicación.</p>
 <ul>
 <li><b>Idioma</b>: Automático o uno de los idiomas instalados. Añade el tuyo dejando un fichero <code>&lt;código&gt;.json</code> en la carpeta <code>locales</code> de la carpeta de configuración.</li>
 <li><b>Apariencia</b>: Sistema (sigue al sistema operativo, en vivo), Claro u Oscuro. <b>Tema</b>: Predeterminado, Medianoche, Grafito, Bosque, Atardecer, Violeta, Rosa o un fichero JSON tuyo en la carpeta <code>themes</code>. Bosque, Atardecer, Violeta y Rosa también cambian el color de acento.</li>
 <li><b>Mostrar fotos de los productos</b>: descarga fotos del espejo de recursos de OpenLogi bajo demanda y las guarda en caché. Solo se piden los ficheros de los modelos de tus dispositivos; no se envía nada sobre ti. Desactivado = solo iconos dibujados. Las fotos son propiedad de Logitech.</li>
 <li><b>Iniciar pyLogi con la sesión de escritorio</b>: arranca minimizado en la bandeja.</li>
+<li><b>Mostrar pyLogi en el menú de aplicaciones</b>: añade o quita el lanzador (entrada e icono) del menú de aplicaciones del usuario; no necesita root. En Linux también hace que el dock muestre el icono de pyLogi.</li>
+<li><b>Extensión auxiliar de GNOME</b> (solo en GNOME): instala o quita la extensión que indica a pyLogi qué aplicación tiene el foco, necesaria para los perfiles por aplicación en Wayland. Tras instalarla, cierra sesión y vuelve a entrar.</li>
 <li><b>Men&uacute; de la bandeja</b>: cada dispositivo conectado con perfiles integrados o anfitriones Easy-Switch tiene un submen&uacute; para cambiar su perfil activo o su anfitri&oacute;n. <i>Guardar informe de compatibilidad&hellip;</i> escribe un fichero de solo lectura con los dispositivos y funciones encontrados (sin n&uacute;meros de serie) para adjuntarlo a un error; el mismo informe est&aacute; disponible como <code>pylogi --report</code>.</li>
 <li><b>Seguir en la bandeja del sistema al cerrar</b>: cerrar la ventana mantiene pyLogi vivo para que las acciones por software sigan funcionando.</li>
 <li><b>Mostrar la pantalla de inicio</b>: la pantalla con el logotipo mientras se detectan los dispositivos. Desactivado = la ventana aparece cuando est&aacute; lista (<code>--no-splash</code> hace lo mismo para una sola ejecuci&oacute;n).</li>

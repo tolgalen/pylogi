@@ -95,7 +95,8 @@ It talks to the devices directly (HID++), so you do not need any Logitech softwa
 </ul>
 
 <h2><a name="add-remove"></a>Adding and removing devices</h2>
-<p><b>Add</b> lists your receivers. For Unifying, LIGHTSPEED and Nano receivers, <b>Pair new device</b> opens pairing for 30 seconds: switch the new device on or press its connect button. <b>Unpair</b> removes a slot. Bluetooth devices are paired in the system's Bluetooth settings (<b>Bluetooth settings&hellip;</b> opens them). Pairing Bolt devices is not implemented yet.</p>
+<p><b>Receivers</b> (button in the header) shows a tree with every receiver found &mdash; family, product ID, serial, port, slots &mdash; and, under it, the devices connected to it with their type, battery, serial, unit ID and protocol. <b>Refresh</b> rereads the list.</p>
+<p><b>Add</b> lists your receivers. For Unifying, LIGHTSPEED and Nano receivers, <b>Pair new device</b> opens pairing for 30 seconds: switch the new device on or press its connect button. <b>Unpair</b> removes a slot. Bluetooth devices are paired in the system's Bluetooth settings (<b>Bluetooth settings&hellip;</b> opens them). For Bolt receivers, <b>Pair new device</b> searches for devices in pairing mode (hold the Easy-Switch button for three seconds until the LED blinks quickly) and then shows the passkey to type on the keyboard or the left / right clicks to make on the mouse. This flow has been written from the documented protocol and may need adjustments on some devices; if it fails, use the system's Bluetooth settings.</p>
 <p><b>Remove&hellip;</b> offers:</p>
 <table>
 <tr><td><b>Unpair from the receiver</b></td><td>Removes the device from its receiver. Needs confirmation; a backup is taken first. The device must be paired again to be used.</td></tr>
@@ -106,11 +107,14 @@ It talks to the devices directly (HID++), so you do not need any Logitech softwa
 </table>
 
 <h2><a name="settings"></a>Settings</h2>
+<p>The settings are grouped in tabs: <b>General</b>, <b>Start-up and tray</b>, <b>Notifications</b> and <b>Advanced</b>. Hover any option for a short explanation.</p>
 <ul>
 <li><b>Language</b>: Automatic or one of the installed languages. Add your own by dropping a <code>&lt;code&gt;.json</code> file in the <code>locales</code> folder of the configuration folder.</li>
 <li><b>Appearance</b>: System (follows the OS, live), Light or Dark. <b>Theme</b>: Default, Midnight, Graphite, Forest, Sunset, Violet, Rose or your own JSON file in the <code>themes</code> folder. Forest, Sunset, Violet and Rose also change the accent colour.</li>
 <li><b>Show product photos</b>: downloads photos from the OpenLogi asset mirror on demand and caches them. Only the files of your devices' models are requested; nothing about you is sent. Off = drawn icons only. Photos are Logitech's property.</li>
 <li><b>Start pyLogi with the desktop session</b>: starts minimised to the tray.</li>
+<li><b>Show pyLogi in the application menu</b>: adds or removes the launcher (entry and icon) in the user's application menu; no root needed. On Linux it also lets the dock show the pyLogi icon.</li>
+<li><b>GNOME helper extension</b> (only on GNOME): installs or removes the extension that tells pyLogi which application has the focus, needed for per-application profiles on Wayland. After installing it, log out and in again.</li>
 <li><b>Tray menu</b>: each online device with onboard profiles or Easy-Switch hosts has a submenu to change its active profile or host. <i>Save compatibility report&hellip;</i> writes a read-only file with the devices and features found (no serial numbers) that you can attach to a bug report; the same report is available as <code>pylogi --report</code>.</li>
 <li><b>Keep running in the tray when closed</b>: closing the window keeps pyLogi alive so software actions keep working.</li>
 <li><b>Show the start-up screen</b>: the splash screen with the logo while the devices are detected. Off = the window simply appears when ready (<code>--no-splash</code> does the same for one run).</li>

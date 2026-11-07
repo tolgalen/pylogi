@@ -60,6 +60,34 @@ class ReceiverDevice(Device):
         self.rx.open_pairing(timeout)
         self._slots_t = 0.0
 
+    # -- Bolt: the receiver announces devices in pairing mode; see hidpp.receiver.BoltPairing
+    def bolt_begin(self, timeout: int = 30):
+        from ..hidpp.receiver import BoltPairing
+        self.bolt = BoltPairing()
+        self._bolt_listener = lambda _ch, m: self.bolt.feed(m)
+        self.rx.ch.add_listener(self._bolt_listener)
+        self.rx.bolt_discover(timeout)
+        return self.bolt
+
+    def bolt_step(self) -> None:
+        """Called regularly while pairing: asks for pairing as soon as a device has announced itself."""
+        b = self.bolt
+        if b.device_ready:
+            b.requested = True
+            self.rx.bolt_pair(b.address, b.authentication, 20 if b.keyboard else 10)
+
+    def bolt_end(self) -> None:
+        listener = getattr(self, "_bolt_listener", None)
+        if listener:
+            self.rx.ch.remove_listener(listener)
+            self._bolt_listener = None
+        for fn in (lambda: self.rx.bolt_cancel(), lambda: self.rx.bolt_discover(cancel=True)):
+            try:
+                fn()
+            except HidppError:
+                pass
+        self._slots_t = 0.0
+
     def unpair(self, slot: int) -> None:
         self.rx.unpair(slot)
         self._slots_t = 0.0        # next scan rereads the slots; the changed list reopens the channel
