@@ -5,6 +5,8 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-08
+
 ### Fixed
 - The camera preview grows with the width of the window (16:9, or the shape of the picture) and shrinks to fit a short one,
   instead of staying a thin strip.

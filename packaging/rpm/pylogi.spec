@@ -3,7 +3,7 @@
 #
 # Fedora package (noarch): pyLogi runs on the distribution's own PySide6.
 # Build:  python scripts/build_rpm.py        (RPM and SRPM end up in ./dist)
-%{!?pylogi_version: %global pylogi_version 0.3.2}
+%{!?pylogi_version: %global pylogi_version 0.3.3}
 
 Name:           pylogi
 Version:        %{pylogi_version}
@@ -92,6 +92,9 @@ udevadm trigger --subsystem-match=hidraw --subsystem-match=misc >/dev/null 2>&1 
 %{_userunitdir}/pylogi.service
 
 %changelog
+* Sun Nov 08 2026 pyLogi contributors <candion@gmail.com> - 0.3.3-1
+- The camera preview grows with the width of the window and shrinks to fit a short one
+
 * Sun Nov 08 2026 pyLogi contributors <candion@gmail.com> - 0.3.2-1
 - Webcams: saved settings are written again on plug-in, video format, editable presets, presets by application,
   auto-adjust and lock, viewing aids, tray menu and command line
