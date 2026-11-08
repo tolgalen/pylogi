@@ -5,6 +5,8 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-08
+
 ### Added
 - Background service: `pylogi --service on|off` (and a switch in Settings) installs a systemd user service that keeps pyLogi
   running minimised for the whole graphical session and restarts it if it stops; the RPM also ships the unit.
