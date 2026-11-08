@@ -75,14 +75,14 @@ launchers on first use, so it never touches your system Python and does not depe
 
 | System | Launcher | First run |
 |---|---|---|
-| Linux, macOS | `./pylogi.sh` | creates `.venv`, installs `requirements.txt` (PySide6; plus `hidapi` on macOS), starts the app |
+| Linux | `./pylogi.sh` | creates `.venv`, installs `requirements.txt` (PySide6; no extra packages), starts the app |
 | Windows | `pylogi.cmd` (double-click, or from a terminal) | same, with `pythonw` so no console window stays open |
 
 ```bash
 git clone <this repository> pylogi && cd pylogi
 ./pylogi.sh                 # Windows:  pylogi.cmd        (the first start needs an internet connection)
 ./pylogi.sh --setup         # only build / update the environment, then exit  (--recreate rebuilds it from scratch)
-scripts/install-user.sh     # Linux/macOS: also puts `pylogi` in ~/.local/bin and adds the application-menu entry
+scripts/install-user.sh     # Linux: also puts `pylogi` in ~/.local/bin and adds the application-menu entry
 pylogi.cmd --install-launcher     # Windows: Start Menu shortcut with the pyLogi icon (add --autostart on to start with Windows)
 ```
 
@@ -118,10 +118,10 @@ Only one program should manage a receiver at a time. Close Solaar, Logi Options+
 ### Packages (no Python needed)
 
 `python scripts/build_release.py` (needs `pip install pyinstaller` next to the app's requirements) freezes the app with
-PyInstaller (`packaging/pyinstaller/pylogi.spec`) into `dist/`: a `.tar.gz` (Linux/macOS) or `.zip` (Windows), plus an
+PyInstaller (`packaging/pyinstaller/pylogi.spec`) into `dist/`: a `.tar.gz` (Linux) or `.zip` (Windows), plus an
 `.AppImage` when `appimagetool` is on the PATH (Linux) or a `setup.exe` when Inno Setup's `iscc` is (Windows,
 `packaging/windows/pylogi.iss`). Verified: the Linux folder build runs, finds the data files, lists real devices and
-exports the help. Not verified here: the AppImage, the Windows installer and any macOS build. A package cannot install the
+exports the help. Not verified here: the AppImage and the Windows installer. A package cannot install the
 udev rules: Linux users still need `packaging/42-pylogi.rules` (see Installation).
 
 ### Fedora (RPM)
@@ -314,15 +314,15 @@ the pre-test backup): DPI, SmartShift, wheel invert and resolution, button remap
 Not observable from software: the colour of LEDs (the per-key frame is accepted; confirm by eye) and whether injected keys
 reach every application. **Not tested on real hardware:** host switching (it would leave the device on another computer),
 unpairing and Bluetooth removal (destructive; checked against recorded frames only), the GNOME helper extension (GNOME
-loads new extensions only after a login), Windows and macOS.
+loads new extensions only after a login) and Windows.
 
 **Written from the protocol, not verified on hardware:** gestures (raw-XY reporting of the held button), the thumb wheel
-(`THUMB_WHEEL` 0x2150) and input injection on Windows (`SendInput`) and macOS (Quartz events; media keys are not sent there).
+(`THUMB_WHEEL` 0x2150) and input injection on Windows (`SendInput`).
 They are covered by tests against recorded frames and fake system calls only; the counts per step of the thumb wheel
 (`actions.THUMB_STEP`) probably need tuning per model.
 
 Not implemented: the Actions Ring, Litra lights, headsets, vendor-specific UVC controls, active-window detection on
-Windows and macOS (so per-application profiles stay Linux-only).
+Windows (so per-application profiles stay Linux-only).
 
 Known behaviours: button diversions are volatile and are re-applied on reconnect; typed text assumes a US layout; per-app
 profiles need X11/XWayland or the GNOME extension; the report rate can only be changed in host mode on devices with onboard
@@ -347,7 +347,7 @@ python run.py --demo                         # simulated devices, no hardware ne
 * **Conventions:** code comments and docstrings are in English; every Python file carries an SPDX licence header
   (checked by the tests).
 * **Continuous integration:** `.github/workflows/ci.yml` runs lint (ruff, mypy), translation check, tests with coverage on
-  Python 3.10-3.14, an informational Windows / macOS run, a wheel build and an RPM build on Fedora. Pushing a `vX.Y.Z` tag
+  Python 3.10-3.14, an informational Windows run, a wheel build and an RPM build on Fedora. Pushing a `vX.Y.Z` tag
   runs `.github/workflows/release.yml` (bundles + RPM + .deb + GitHub release). See `CONTRIBUTING.md` and `CHANGELOG.md`.
 
 ## Licence and credits
@@ -361,7 +361,7 @@ distributed in the hope that it will be useful, but **without any warranty**. Th
 |---|---|---|
 | [Python](https://www.python.org/) | PSF-2.0 | Language runtime and standard library (unittest, argparse, ctypes, ...). |
 | [Qt 6 / PySide6 (Qt for Python)](https://doc.qt.io/qtforpython-6/) | LGPL-3.0-only (Qt is also available under GPL and commercial terms) | GUI toolkit, used unmodified through the PySide6 wheels. |
-| [hidapi (optional)](https://github.com/libusb/hidapi) | BSD-3-Clause / GPL-3.0 / HIDAPI licence (your choice) | HID transport on Windows and macOS only; Linux talks to /dev/hidraw directly. |
+| [hidapi (optional)](https://github.com/libusb/hidapi) | BSD-3-Clause / GPL-3.0 / HIDAPI licence (your choice) | HID transport on Windows only; Linux talks to /dev/hidraw directly. |
 | [Solaar](https://github.com/pwr-Solaar/Solaar) | GPL-2.0-or-later | Reference for the HID++ protocol: register and feature layouts were cross-checked against its public source. No Solaar code is included. |
 | [OpenLogi](https://github.com/AprilNEA/OpenLogi) | MIT OR Apache-2.0 (code); design assets are all rights reserved | Inspiration for the user interface, and the public asset mirror (assets.openlogi.org) that serves the product photos and button-hotspot metadata. No OpenLogi code or design asset is included. |
 | Logitech product photos and device metadata | Property of Logitech; not covered by the GPL | Downloaded at run time only with your consent and cached on your computer. They are never redistributed with pyLogi. |

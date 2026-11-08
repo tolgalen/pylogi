@@ -4,7 +4,7 @@
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install -e ".[hidapi]" ruff mypy coverage      # hidapi only matters on Windows / macOS
+pip install -e ".[hidapi]" ruff mypy coverage      # hidapi only matters on Windows
 ```
 
 Run the app from the sources with `python run.py` (add `--demo` to use fake devices, no hardware needed).

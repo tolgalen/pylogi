@@ -5,7 +5,7 @@
 
     python scripts/build_release.py            # needs: pip install pyinstaller (and the app's requirements)
 
-Always produced: the self-contained folder (PyInstaller) packed as .tar.gz (Linux/macOS) or .zip (Windows).
+Always produced: the self-contained folder (PyInstaller) packed as .tar.gz (Linux) or .zip (Windows).
 Extra packages, only when their tool is on PATH:
     Linux    pyLogi-<version>-x86_64.AppImage   (appimagetool)
     Windows  pyLogi-<version>-setup.exe         (Inno Setup: iscc)

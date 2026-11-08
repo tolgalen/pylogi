@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
 #
-# Per-user install for Linux / macOS: builds the private virtual environment, puts a `pylogi` command on the
+# Per-user install for Linux: builds the private virtual environment, puts a `pylogi` command on the
 # PATH (a symlink to the launcher) and adds the application-menu entry.  No root needed.
 set -euo pipefail
 cd "$(dirname "$0")/.."

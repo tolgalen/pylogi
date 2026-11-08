@@ -43,7 +43,7 @@ jobs:
         with: {name: coverage, path: coverage.xml}
       - run: python -m build --wheel
 
-  # The README promises Windows and macOS: these jobs report breakage there (the transport is hidapi).
+  # The README promises Windows: this job reports breakage there (the transport is hidapi).
   # Not blocking yet: the suite was written on Linux and has not been verified on these systems.
   other-os:
     runs-on: ${{ matrix.os }}
@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest]
     env:
       QT_QPA_PLATFORM: offscreen
     steps:

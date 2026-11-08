@@ -18,7 +18,7 @@ requires-python = ">=3.10"
 dependencies = ["PySide6-Essentials>=6.5", "PySide6-Addons>=6.5"]
 
 [project.optional-dependencies]
-hidapi = ["hidapi"]   # Windows / macOS transport
+hidapi = ["hidapi"]   # Windows transport
 build = ["pyinstaller"]   # python scripts/build_release.py
 
 [project.scripts]

@@ -106,7 +106,7 @@ udevadm trigger --subsystem-match=hidraw --subsystem-match=misc >/dev/null 2>&1 
 - The Offline notice is red
 
 * Sat Nov 07 2026 pyLogi contributors <candion@gmail.com> - 0.3.0-1
-- Macros, gestures, thumb wheel; input injection for Windows and macOS (unverified on hardware)
+- Macros, gestures, thumb wheel; input injection for Windows (unverified on hardware)
 - UTF-8 for every text file, listener-thread shutdown fix, safer image downloads
 
 * Sat Nov 07 2026 pyLogi contributors <candion@gmail.com> - 0.2.0-1

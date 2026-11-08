@@ -15,8 +15,6 @@ from typing import Any
 def config_dir() -> Path:
     if sys.platform.startswith("win"):
         base = Path(os.environ.get("APPDATA", Path.home()))
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Application Support"
     else:
         base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
     d = base / "pylogi"

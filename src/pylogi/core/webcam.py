@@ -4,6 +4,9 @@
 
 Only the standard V4L2 controls are used (zoom, pan, tilt, focus, exposure,
 white balance, brightness...), no external tool is required.
+
+On Windows the cameras are found through the Plug and Play device list (SetupAPI, through ctypes) so they
+appear in the app and can be previewed; their image controls are not available there (no DirectShow backend yet).
 """
 from __future__ import annotations
 
@@ -11,6 +14,7 @@ import ctypes
 import errno
 import glob
 import os
+import sys
 from dataclasses import dataclass
 
 from ..i18n import N_
@@ -356,7 +360,123 @@ class WebcamDevice(Device):
         self.cam.set_mode(fmt, width, height, fps)
 
 
+class NoControlsCamera(V4L2Camera):
+    """A camera whose controls cannot be reached (Windows): listed and previewable, nothing to adjust."""
+
+    def controls(self) -> list[CamControl]: return []
+    def modes(self) -> list[VideoMode]: return []
+    def mode(self) -> tuple[str, int, int, int] | None: return None
+
+    def set_mode(self, fmt: str, width: int, height: int, fps: int) -> None:
+        raise OSError(errno.ENOTSUP, "not supported on this system")
+
+    def set(self, cid: int, value: int) -> None:
+        raise OSError(errno.ENOTSUP, "not supported on this system")
+
+
+def parse_pnp_camera(hwids: list[str], friendly: str, instance: str) -> WebcamDevice | None:
+    """Build a camera from a Windows PnP entry (hardware ids such as 'USB\\VID_046D&PID_085E&MI_00'), or None."""
+    import re
+    for h in hwids:
+        m = re.search(r"VID_([0-9A-F]{4})&PID_([0-9A-F]{4})", h.upper())
+        if m:
+            break
+    else:
+        return None
+    if m.group(1).lower() != "046d":
+        return None
+    pid = m.group(2).lower()
+    cam = WebcamDevice(instance, friendly or "Logitech webcam", f"cam:{instance.lower()}")
+    cam.cam = NoControlsCamera(instance)
+    cam.model_ids = [pid]
+    cam.vid_pid = f"046d:{pid}"
+    cam.usb_path = instance
+    cam.legacy_uid = cam.legacy_key = ""
+    cam.info.extra[N_("USB port")] = instance
+    return cam
+
+
+def _windows_pnp_cameras() -> list[tuple[list[str], str, str]]:
+    """(hardware ids, friendly name, instance id) of the present camera / imaging devices."""
+    import ctypes.wintypes as wt
+    setupapi = ctypes.WinDLL("setupapi", use_last_error=True)
+
+    class GUID(ctypes.Structure):
+        _fields_ = [("a", wt.DWORD), ("b", wt.WORD), ("c", wt.WORD), ("d", ctypes.c_ubyte * 8)]
+
+    class DevInfoData(ctypes.Structure):
+        _fields_ = [("cbSize", wt.DWORD), ("ClassGuid", GUID), ("DevInst", wt.DWORD),
+                    ("Reserved", ctypes.c_void_p)]
+
+    def guid(text: str) -> GUID:
+        import uuid
+        u = uuid.UUID(text)
+        g = GUID()
+        g.a, g.b, g.c = u.time_low, u.time_mid, u.time_hi_version
+        for i, byte in enumerate(u.bytes[8:]):
+            g.d[i] = byte
+        return g
+
+    setupapi.SetupDiGetClassDevsW.restype = ctypes.c_void_p
+    setupapi.SetupDiGetClassDevsW.argtypes = [ctypes.POINTER(GUID), wt.LPCWSTR, wt.HWND, wt.DWORD]
+    setupapi.SetupDiEnumDeviceInfo.argtypes = [ctypes.c_void_p, wt.DWORD, ctypes.POINTER(DevInfoData)]
+    setupapi.SetupDiGetDeviceRegistryPropertyW.argtypes = [
+        ctypes.c_void_p, ctypes.POINTER(DevInfoData), wt.DWORD, ctypes.POINTER(wt.DWORD),
+        ctypes.c_void_p, wt.DWORD, ctypes.POINTER(wt.DWORD)]
+    setupapi.SetupDiGetDeviceInstanceIdW.argtypes = [
+        ctypes.c_void_p, ctypes.POINTER(DevInfoData), wt.LPWSTR, wt.DWORD, ctypes.POINTER(wt.DWORD)]
+    setupapi.SetupDiDestroyDeviceInfoList.argtypes = [ctypes.c_void_p]
+
+    def prop(h, data, which: int) -> list[str]:
+        buf = ctypes.create_unicode_buffer(2048)
+        if not setupapi.SetupDiGetDeviceRegistryPropertyW(h, ctypes.byref(data), which, None, buf,
+                                                          ctypes.sizeof(buf), None):
+            return []
+        return ctypes.wstring_at(ctypes.addressof(buf), 2048).rstrip("\0").split("\0")
+
+    out = []
+    seen: set[str] = set()
+    # camera class, imaging-device class (older drivers); only devices that are plugged in
+    for cls in ("ca3e7ab9-b4c3-4ae6-8251-579ef933890f", "6bdd1fc6-810f-11d0-bec7-08002be2092f"):
+        g = guid(cls)
+        h = setupapi.SetupDiGetClassDevsW(ctypes.byref(g), None, None, 0x2)      # DIGCF_PRESENT
+        if h in (None, ctypes.c_void_p(-1).value):
+            continue
+        try:
+            i = 0
+            data = DevInfoData()
+            data.cbSize = ctypes.sizeof(DevInfoData)
+            while setupapi.SetupDiEnumDeviceInfo(h, i, ctypes.byref(data)):
+                i += 1
+                inst = ctypes.create_unicode_buffer(512)
+                if not setupapi.SetupDiGetDeviceInstanceIdW(h, ctypes.byref(data), inst, 512, None):
+                    continue
+                if inst.value in seen:
+                    continue
+                seen.add(inst.value)
+                name = (prop(h, data, 12) or prop(h, data, 0) or [""])[0]       # friendly name / description
+                out.append((prop(h, data, 1) + prop(h, data, 2), name, inst.value))   # hardware + compatible ids
+        finally:
+            setupapi.SetupDiDestroyDeviceInfoList(h)
+    return out
+
+
+def _find_windows() -> list[WebcamDevice]:
+    cams = []
+    for hwids, name, inst in _windows_pnp_cameras():
+        cam = parse_pnp_camera(hwids, name, inst)
+        if cam is not None:
+            cams.append(cam)
+    return cams
+
+
 def find_logitech_webcams() -> list[WebcamDevice]:
+    if sys.platform.startswith("win"):
+        return _find_windows()
+    return _find_linux()
+
+
+def _find_linux() -> list[WebcamDevice]:
     cams = []
     for d in sorted(glob.glob("/sys/class/video4linux/video*")):
         try:

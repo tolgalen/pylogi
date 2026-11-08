@@ -15,7 +15,7 @@ datas += [(str(ROOT / "LICENSE"), "."), (str(ROOT / "README.md"), "."),
           (str(ROOT / "packaging" / "42-pylogi.rules"), "packaging")]
 
 hidden = ["pylogi.app", "pylogi.ui.main_window"]
-if sys.platform == "darwin" or sys.platform.startswith("win"):
+if sys.platform.startswith("win"):
     hidden.append("hid")                      # hidapi: no /dev/hidraw on these systems
 
 a = Analysis([str(ROOT / "run.py")], pathex=[str(SRC)], datas=datas, hiddenimports=hidden,

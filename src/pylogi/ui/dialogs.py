@@ -471,9 +471,6 @@ def open_bluetooth_settings() -> bool:
     if sys.platform.startswith("win"):
         os.startfile("ms-settings:bluetooth")                      # type: ignore[attr-defined]
         return True
-    if sys.platform == "darwin":
-        subprocess.Popen(["open", "x-apple.systempreferences:com.apple.BluetoothSettings"])
-        return True
     for cmd in (["gnome-control-center", "bluetooth"], ["kcmshell6", "kcm_bluetooth"],
                 ["blueman-manager"], ["blueberry"]):
         if shutil.which(cmd[0]):

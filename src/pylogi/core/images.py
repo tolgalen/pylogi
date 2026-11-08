@@ -35,8 +35,6 @@ TYPES = {"mouse": "MOUSE", "trackball": "MOUSE", "keyboard": "KEYBOARD",
 def cache_dir() -> Path:
     if sys.platform.startswith("win"):
         base = Path(os.environ.get("LOCALAPPDATA", Path.home()))
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Caches"
     else:
         base = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
     d = base / "pylogi" / "images"

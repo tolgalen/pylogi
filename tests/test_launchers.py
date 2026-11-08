@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
-"""The launchers (Linux/macOS shell script, Windows batch file) and the desktop integration that points to them."""
+"""The launchers (Linux shell script, Windows batch file) and the desktop integration that points to them."""
 import os
 import re
 import shutil

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
-"""Macros, gestures, thumb wheel and the Windows / macOS input injectors."""
+"""Macros, gestures, thumb wheel and the Windows input injector."""
 import ctypes
 import os
 import struct
@@ -342,36 +342,14 @@ class WindowsInjector(unittest.TestCase):
         self.assertEqual((w2.mi.dwFlags, w2.mi.mouseData), (0x1000, 240))
 
 
-class MacInjector(unittest.TestCase):
-    def test_every_letter_digit_modifier_and_edit_key_has_a_mac_code(self):
-        needed = {c for k, c in A.KEYCODES.items() if k not in ("F6", "F7", "F8", "F9", "F10", "Insert", "Print Screen")}
-        needed |= set(A.MODIFIERS.values())
-        self.assertEqual(sorted(needed - injectors._MAC.keys()), [])
-
-    def test_posts_events_and_frees_them(self):
-        q = mock.MagicMock()
-        q.CGEventGetLocation.return_value = injectors.CGPoint(10, 20)
-        inj = injectors.MacInjector(q)
-        inj.key(A.KEYCODES["A"], True)
-        q.CGEventCreateKeyboardEvent.assert_called_with(None, 0, True)
-        inj.key(A.MOUSE["left"], True)
-        self.assertEqual(q.CGEventCreateMouseEvent.call_args[0][1], 1)
-        inj.key(A.MOUSE["left"], False)
-        self.assertEqual(q.CGEventCreateMouseEvent.call_args[0][1], 2)
-        inj.rel(8, -1)
-        q.CGEventCreateScrollWheelEvent.assert_called_with(None, 1, 2, -1, 0)
-        inj.rel(6, 3)
-        q.CGEventCreateScrollWheelEvent.assert_called_with(None, 1, 2, 0, 3)
-        self.assertEqual(q.CGEventPost.call_count, q.CFRelease.call_count)
-        before = q.CGEventPost.call_count
-        inj.key(A.MEDIA["Mute"], True)                                  # media keys: not supported, nothing posted
-        self.assertEqual(q.CGEventPost.call_count, before)
-
+class PlatformInjector(unittest.TestCase):
     def test_platform_choice(self):
         with mock.patch.object(sys, "platform", "linux"):
             self.assertIsNone(injectors.platform_injector())
-        with mock.patch.object(sys, "platform", "darwin"), \
-                mock.patch("pylogi.core.injectors.MacInjector", side_effect=OSError("no lib")):
+        with mock.patch.object(sys, "platform", "darwin"):
+            self.assertIsNone(injectors.platform_injector())
+        with mock.patch.object(sys, "platform", "win32"), \
+                mock.patch("pylogi.core.injectors.WindowsInjector", side_effect=OSError("no lib")):
             inj = injectors.platform_injector()
             self.assertFalse(inj.available)
             self.assertIn("no lib", inj.reason)

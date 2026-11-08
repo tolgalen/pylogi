@@ -35,7 +35,7 @@ COMPONENTS: list[Component] = [
     Component("Qt 6 / PySide6 (Qt for Python)", "LGPL-3.0-only (Qt is also available under GPL and commercial terms)",
               "GUI toolkit, used unmodified through the PySide6 wheels.", "https://doc.qt.io/qtforpython-6/"),
     Component("hidapi (optional)", "BSD-3-Clause / GPL-3.0 / HIDAPI licence (your choice)",
-              "HID transport on Windows and macOS only; Linux talks to /dev/hidraw directly.",
+              "HID transport on Windows only; Linux talks to /dev/hidraw directly.",
               "https://github.com/libusb/hidapi"),
     Component("Solaar", "GPL-2.0-or-later",
               "Reference for the HID++ protocol: register and feature layouts were cross-checked against its public "

@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
-"""Input injection for Windows (SendInput) and macOS (Quartz events), through ctypes.
+"""Input injection for Windows (SendInput), through ctypes.
 
 The action engine speaks Linux evdev codes (``actions.KEYCODES`` ...).  These backends translate them to the
-platform's own key codes.  NOT verified on real Windows / macOS machines: the translation tables and the
-call structure are covered by tests, the effect on a real desktop is not.  macOS asks for the
-*Accessibility* permission the first time events are posted.
+platform's own key codes.  NOT verified on a real Windows machine: the translation tables and the
+call structure are covered by tests, the effect on a real desktop is not.
 """
 from __future__ import annotations
 
@@ -30,22 +29,6 @@ _VK |= dict(zip(range(16, 26), map(ord, "QWERTYUIOP"))) | dict(zip(range(30, 39)
 _VK_EXTENDED = {102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 125}
 _VK_MOUSE = {0x110: (0x0002, 0x0004, 0), 0x111: (0x0008, 0x0010, 0), 0x112: (0x0020, 0x0040, 0),
              0x113: (0x0080, 0x0100, 1), 0x114: (0x0080, 0x0100, 2)}      # (down, up, xbutton)
-
-# evdev code -> macOS virtual key code (ANSI keyboard)
-_MAC: dict[int, int] = {
-    1: 53, 2: 18, 3: 19, 4: 20, 5: 21, 6: 23, 7: 22, 8: 26, 9: 28, 10: 25, 11: 29, 12: 27, 13: 24, 14: 51,
-    15: 48, 26: 33, 27: 30, 28: 36, 39: 41, 40: 39, 41: 50, 43: 42, 51: 43, 52: 47, 53: 44, 57: 49,
-    87: 103, 88: 111, 102: 115, 103: 126, 104: 116, 105: 123, 106: 124, 107: 119, 108: 125, 109: 121,
-    111: 117, 29: 59, 42: 56, 56: 58, 125: 55,
-    16: 12, 17: 13, 18: 14, 19: 15, 20: 17, 21: 16, 22: 32, 23: 34, 24: 31, 25: 35,
-    30: 0, 31: 1, 32: 2, 33: 3, 34: 5, 35: 4, 36: 38, 37: 40, 38: 37,
-    44: 6, 45: 7, 46: 8, 47: 9, 48: 11, 49: 45, 50: 46,
-    59: 122, 60: 120, 61: 99, 62: 118, 63: 96, 64: 97, 65: 98, 66: 100, 67: 101, 68: 109,
-}
-# media keys on macOS are system-defined events (NX key types)
-_MAC_MEDIA = {164: 16, 163: 17, 165: 18, 113: 7, 115: 0, 114: 1}   # play, next, previous, mute, vol up, vol down
-_MAC_MOUSE = {0x110: 0, 0x111: 1, 0x112: 2, 0x113: 3, 0x114: 4}
-
 
 class WindowsInjector(Injector):
     """SendInput for keyboard, mouse buttons and the wheels."""
@@ -104,73 +87,11 @@ class WindowsInjector(Injector):
         pass
 
 
-class CGPoint(ctypes.Structure):
-    _fields_ = [("x", ctypes.c_double), ("y", ctypes.c_double)]
-
-
-class MacInjector(Injector):
-    """Quartz event services (ApplicationServices) for keys, mouse buttons and scrolling."""
-
-    def __init__(self, quartz=None):
-        if quartz is None:
-            lib = ctypes.util.find_library("ApplicationServices")
-            if not lib:
-                raise OSError("ApplicationServices not found")
-            quartz = ctypes.cdll.LoadLibrary(lib)
-            quartz.CGEventCreateKeyboardEvent.restype = ctypes.c_void_p
-            quartz.CGEventCreateKeyboardEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint16, ctypes.c_bool]
-            quartz.CGEventCreateScrollWheelEvent.restype = ctypes.c_void_p
-            quartz.CGEventCreateScrollWheelEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
-                                                             ctypes.c_int32, ctypes.c_int32]
-            quartz.CGEventCreateMouseEvent.restype = ctypes.c_void_p
-            quartz.CGEventCreateMouseEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint32, CGPoint,
-                                                       ctypes.c_uint32]
-            quartz.CGEventCreate.restype = ctypes.c_void_p
-            quartz.CGEventCreate.argtypes = [ctypes.c_void_p]
-            quartz.CGEventGetLocation.restype = CGPoint
-            quartz.CGEventGetLocation.argtypes = [ctypes.c_void_p]
-            quartz.CGEventPost.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
-            quartz.CFRelease.argtypes = [ctypes.c_void_p]
-        self.q = quartz
-        self.available, self.reason = True, ""
-
-    def _post(self, ev) -> None:
-        if ev:
-            self.q.CGEventPost(0, ev)             # kCGHIDEventTap
-            self.q.CFRelease(ev)
-
-    def key(self, code: int, down: bool) -> None:
-        if code in _MAC_MOUSE:
-            self._mouse(code, down)
-            return
-        vk = _MAC.get(code)
-        if vk is None:
-            return                                # media keys need NX system events (not supported here)
-        self._post(self.q.CGEventCreateKeyboardEvent(None, vk, down))
-
-    def _mouse(self, code: int, down: bool) -> None:
-        button = _MAC_MOUSE[code]
-        pos = self.q.CGEventGetLocation(self.q.CGEventCreate(None))
-        kind = {0: (1, 2), 1: (3, 4)}.get(button, (25, 26))            # left / right / other down-up types
-        self._post(self.q.CGEventCreateMouseEvent(None, kind[0] if down else kind[1], pos, button))
-
-    def rel(self, code: int, value: int) -> None:
-        if code == 8:
-            self._post(self.q.CGEventCreateScrollWheelEvent(None, 1, 2, value, 0))     # kCGScrollEventUnitLine
-        elif code == 6:
-            self._post(self.q.CGEventCreateScrollWheelEvent(None, 1, 2, 0, value))
-
-    def close(self) -> None:
-        pass
-
-
 def platform_injector() -> Injector | None:
     """The injector of the running platform, or None (Linux is handled by actions.UInputInjector)."""
     try:
         if sys.platform == "win32":
             return WindowsInjector()
-        if sys.platform == "darwin":
-            return MacInjector()
     except (OSError, AttributeError) as e:
         inj = Injector()
         inj.reason = f"input injection is not available ({e})"

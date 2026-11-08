@@ -185,7 +185,7 @@ class UInputInjector(Injector):
 
 def default_injector() -> Injector:
     if not sys.platform.startswith("linux"):
-        from . import injectors                 # SendInput / Quartz; imported here: it needs this module's Injector
+        from . import injectors                 # SendInput; imported here: it needs this module's Injector
         inj = injectors.platform_injector()
         if inj is not None:
             return inj

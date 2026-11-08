@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
 #
-# pyLogi launcher for Linux and macOS.  The application always runs in its own virtual
+# pyLogi launcher for Linux.  The application always runs in its own virtual
 # environment (.venv next to this script), which is created and filled on first use.
 #
 #   ./pylogi.sh                      start the application detached (the console closes / the prompt returns;
@@ -85,7 +85,6 @@ export PYLOGI_LAUNCHER="$HERE/pylogi.sh"      # used by --install-launcher / --a
 [ -z "${PYLOGI_SYSTEM_SITE:-}" ] && export PYTHONNOUSERSITE=1    # nothing outside the environment leaks in
 if [ $# -eq 0 ] && [ -z "${PYLOGI_FOREGROUND:-}" ]; then
     LOGDIR="${XDG_CONFIG_HOME:-$HOME/.config}/pylogi"
-    [ "$(uname -s)" = "Darwin" ] && LOGDIR="$HOME/Library/Application Support/pylogi"
     mkdir -p "$LOGDIR"
     if command -v setsid >/dev/null 2>&1; then
         setsid "$VENV/bin/python" "$HERE/run.py" >>"$LOGDIR/pylogi.log" 2>&1 </dev/null &

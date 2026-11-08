@@ -5,6 +5,18 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+### Added
+- Windows: Logitech webcams are found through the Plug and Play device list (SetupAPI) and show up in the app with the
+  live preview. Their image controls are not available there yet (no DirectShow backend).
+
+### Removed
+- macOS support: the Quartz input injector, the macOS paths, launcher branches, CI and release jobs.
+
+### Fixed
+- Windows: receivers and Bluetooth mice were not detected. Bluetooth LE devices (usage page `0xFF43`, usage `0x0202`)
+  were filtered out, and a receiver's short (`0x10`) and long (`0x11`) HID++ collections, which hidapi lists as separate
+  devices, were opened as two unrelated interfaces. They are now grouped into one channel and reports are routed by id.
+
 ## [0.3.3] - 2026-11-08
 
 ### Fixed
