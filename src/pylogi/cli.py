@@ -41,7 +41,7 @@ def list_devices(devices: list[Device], as_json: bool) -> None:
               f"{'online' if r['online'] else 'offline':8} battery={bat}")
 
 
-def read_value(dev: Device, name: str):
+def read_value(dev: Device, name: str, settings: DeviceSettings | None = None):
     """Current value of one setting, in the form `--set` accepts it."""
     name = name.lower().replace("_", "-")
     if name == "dpi":
@@ -65,6 +65,12 @@ def read_value(dev: Device, name: str):
         return dev.battery.percent if dev.battery else None
     if name == "firmware":
         return dev.info.firmware
+    if name == "preset" and settings is not None:
+        return settings.cfg.get(f"campreset:{dev.uid}", "Default")
+    if name == "video-mode":
+        from .core.camera import mode_text
+        mode = dev.video_mode()
+        return mode_text(mode) if mode else None
     if name.startswith("camera."):
         want = name.split(".", 1)[1]
         from .core.camera import norm
@@ -72,16 +78,16 @@ def read_value(dev: Device, name: str):
             if norm(c.name).replace(" ", "-").startswith(want):
                 return c.value
     raise SystemExit(f"unknown setting '{name}' (dpi, smartshift, wheel-invert, wheel-hires, report-rate, fn-lock, "
-                     "backlight, thumb-invert, battery, firmware, camera.<control>)")
+                     "backlight, thumb-invert, battery, firmware, preset, video-mode, camera.<control>)")
 
 
-def get(dev: Device, names: list[str] | None = None) -> dict:
+def get(dev: Device, names: list[str] | None = None, settings: DeviceSettings | None = None) -> dict:
     """Everything the device reports, or only the named settings."""
     if names:
         out = {}
         for n in names:
             try:
-                out[n] = read_value(dev, n)
+                out[n] = read_value(dev, n, settings)
             except SystemExit:
                 raise
             except Exception as e:
@@ -147,8 +153,25 @@ def set_values(dev: Device, pairs: list[str], settings: DeviceSettings) -> list[
                                  ", ".join(norm(c.name).replace(" ", "-") for c in ctrls))
             for cc, v in plan_writes({c.name: int(value)}, ctrls):
                 dev.set_cam_control(cc.id, v)
+            settings.remember_camera(dev)
+        elif name == "preset":
+            from .core.camera import apply_preset, preset_names
+            if value not in preset_names(settings.cfg, dev.uid):
+                raise SystemExit(f"unknown preset '{value}': " + ", ".join(preset_names(settings.cfg, dev.uid)))
+            errors = apply_preset(dev, settings.cfg, value)
+            settings.remember_camera(dev)
+            if errors:
+                raise SystemExit("; ".join(errors))
+        elif name in ("video-mode", "format"):
+            from .core.camera import parse_mode
+            try:
+                mode = parse_mode(value)
+            except ValueError as e:
+                raise SystemExit(str(e))
+            dev.set_video_mode(*mode)
+            settings.remember_camera_mode(dev, mode)
         else:
             raise SystemExit(f"unknown setting '{name}' (dpi, smartshift, wheel-invert, wheel-hires, "
-                             "report-rate, fn-lock, backlight, thumb-invert, camera.<control>)")
+                             "report-rate, fn-lock, backlight, thumb-invert, preset, video-mode, camera.<control>)")
         done.append(f"{name}={value}")
     return done

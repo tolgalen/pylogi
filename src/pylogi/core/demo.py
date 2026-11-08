@@ -26,7 +26,7 @@ from .device import (
 )
 from .types import (Battery, Control, DpiInfo, HostInfo, Profile, RgbZone,
                     ButtonBinding)
-from .webcam import (CamControl, T_BOOL, T_INT, T_MENU, WebcamDevice)
+from .webcam import (CamControl, T_BOOL, T_BUTTON, T_INT, T_MENU, VideoMode, WebcamDevice)
 
 
 class DemoDevice(Device):
@@ -132,13 +132,26 @@ class DemoWebcam(WebcamDevice):
             CamControl(9, "Zoom, Absolute", T_INT, 100, 500, 1, 100, 100, 0, {}),
             CamControl(10, "Pan (absolute)", T_INT, -36000, 36000, 3600, 0, 0, 0, {}),
             CamControl(11, "Tilt (absolute)", T_INT, -36000, 36000, 3600, 0, 0, 0, {}),
+            CamControl(12, "Pan/Tilt Reset", T_BUTTON, 0, 0, 0, 0, 0, 0, {}),
         ]
+        self._modes = [VideoMode("MJPG", 1920, 1080, [60, 30]), VideoMode("MJPG", 1280, 720, [60, 30]),
+                       VideoMode("YUYV", 640, 480, [30, 15])]
+        self._mode = ("MJPG", 1920, 1080, 30)
 
     def cam_controls(self): return list(self._c)
     def set_cam_control(self, cid, value):
         for c in self._c:
             if c.id == cid:
-                c.value = int(value)
+                if c.is_button:                       # the "reset" button centres pan and tilt
+                    for o in self._c:
+                        if o.name.startswith(("Pan", "Tilt")):
+                            o.value = o.default
+                else:
+                    c.value = int(value)
+
+    def video_modes(self): return list(self._modes)
+    def video_mode(self): return self._mode
+    def set_video_mode(self, fmt, width, height, fps): self._mode = (fmt, int(width), int(height), int(fps))
 
 
 class DemoManager(QObject):

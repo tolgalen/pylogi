@@ -6,6 +6,18 @@ the release workflow copies the section of the tagged version into the GitHub re
 ## [Unreleased]
 
 ### Added
+- Webcams: every change is remembered and written again when the camera is plugged in or the computer wakes up
+  (control values and video mode); the chosen preset is no longer lost on restart.
+- Webcams: video format (pixel format, size, frame rate) through V4L2; command-line `video-mode=` and `preset=`;
+  the presets of each camera in the tray menu.
+- Webcams: built-in presets can be customised and restored; saved presets can be updated, renamed and deleted.
+- Webcams: presets that switch on while an application has the focus (same window detection as the mouse profiles).
+- Webcams: *Auto-adjust and lock*; grid, mirror and histogram over the preview; action buttons (`Pan/Tilt Reset`) and
+  integer menus from the driver are shown.
+- Webcams without a serial number are identified by their USB port instead of `/dev/videoN`, so settings follow the camera
+  (existing ones are carried over).
+
+### Added
 - Debian / Ubuntu package (`scripts/build_deb.py`, built on Ubuntu 22.04 in the release workflow): a self-contained `.deb` for
   Debian 12/13 and Ubuntu 22.04 or later, with menu entry, icons, udev rules and the user service. Installed and started in
   containers of all four releases.

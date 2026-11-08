@@ -86,7 +86,12 @@ It talks to the devices directly (HID++), so you do not need any Logitech softwa
 <ul>
 <li><b>Lens</b>: zoom, pan, tilt, focus and exposure. Focus and exposure have an <b>Auto</b> chip; while Auto is on the slider is greyed out because the camera controls the value.</li>
 <li><b>Image</b>: anti-flicker (50/60 Hz), backlight compensation, brightness, contrast, saturation, sharpness, gain and white balance (with Auto).</li>
-<li><b>Presets</b>: <i>Default</i> (the camera's factory values), <i>Streaming</i>, <i>Video call</i> and your own. <b>+ New</b> saves the current values under a name; right-click a preset to delete it. <b>Reset to defaults</b> restores the factory values.</li>
+<li><b>Presets</b>: <i>Default</i> (the camera's factory values), <i>Streaming</i>, <i>Video call</i> and your own. <b>+ New</b> saves the current values under a name; right-click a preset for <i>Update with the current values</i>, <i>Rename&hellip;</i> or <i>Delete</i>; on the built-in ones, <i>Customise with the current values</i> (marked with *) and <i>Restore the original</i>. <b>Reset to defaults</b> restores the factory values.</li>
+<li><b>Video format</b>: pixel format (MJPG, YUYV, H264&hellip;), size and frame rate. Applying it pauses the preview. Programs that choose their own format override it.</li>
+<li><b>Auto-adjust and lock</b>: lets the camera pick exposure, focus and white balance for a moment, then keeps those values as manual ones.</li>
+<li><b>Presets by application&hellip;</b>: a preset that switches on while an application has the focus (for example <i>Video call</i> for <code>zoom</code>) and gives way to the previous one afterwards. It uses the same window detection as the application profiles of mice.</li>
+<li><b>Grid</b>, <b>Mirror</b> and <b>Histogram</b> under the preview are viewing aids only; they do not change the camera. Some drivers add action buttons (such as <i>Pan/Tilt Reset</i>), shown with a <b>Run</b> chip.</li>
+<li>Every change is remembered and written again when the camera is plugged in or the computer wakes up. A camera is recognised by its serial number or, without one, by the USB port it is in. The tray menu lists the presets of each camera, and <code>--set</code> accepts <code>preset=NAME</code> and <code>video-mode=MJPG:1280x720@30</code>.</li>
 </ul>
 
 <h2><a name="device-section"></a>The Device section</h2>

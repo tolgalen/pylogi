@@ -31,6 +31,12 @@ class DeviceSettings:
     def _rec(self, dev: Device) -> dict[str, Any]:
         self.cfg.name_device(dev.device_key(), dev.name)       # the device's file is named after it
         rec = self.cfg.get(self._key(dev), {})
+        old_key = getattr(dev, "legacy_key", "")            # a camera used to be identified by its /dev/videoN node
+        if old_key and not rec and old_key != dev.device_key():
+            old = self.cfg.pop("dev:" + old_key)
+            if old:
+                rec = old
+                self._put(dev, rec)
         old_colors = self.cfg.pop(f"keys:{dev.uid}")           # colours stored by older versions, by uid
         if old_colors:
             rec = dict(rec)
@@ -64,6 +70,21 @@ class DeviceSettings:
         cur_mode, cur_inv = self.thumb(dev)
         self.save(dev, "thumb", {"mode": cur_mode if mode is None else mode,
                                  "invert": cur_inv if invert is None else invert})
+
+    # -- webcam: control values and video mode, written again when the camera is plugged in
+    def camera(self, dev: Device) -> dict[str, int]:
+        return dict(self._rec(dev).get("camera") or {})
+
+    def camera_mode(self, dev: Device) -> list | None:
+        return self._rec(dev).get("camera_mode")
+
+    def remember_camera(self, dev: Device) -> None:
+        """Store what the camera is set to now (control values only; the video mode has its own entry)."""
+        from .camera import snapshot
+        self.save(dev, "camera", snapshot(dev.cam_controls()))
+
+    def remember_camera_mode(self, dev: Device, mode: tuple[str, int, int, int] | None) -> None:
+        self.save(dev, "camera_mode", list(mode) if mode else None)
 
     # -- profiles and bindings
     def profiles(self, dev: Device) -> list[str]:
@@ -146,6 +167,8 @@ class DeviceSettings:
                 self.engine.configure_thumb(dev)
             else:                                          # no software actions: only the direction can be set
                 dev.set_thumb(diverted=False, invert=self.thumb(dev)[1])
+        if dev.has("webcam"):
+            self._apply_camera(dev, rec)
         if rec.get("key_colors") and dev.has("keylight"):
             dev.set_key_colors({int(u): tuple(c) for u, c in rec["key_colors"].items()})
         fx = rec.get("fx")
@@ -154,6 +177,18 @@ class DeviceSettings:
             if fx["effect"] in lighting_fx.EFFECTS:
                 lighting_fx.HUB.start(dev, fx["effect"], lighting_fx.positions_for(dev, rec),
                                       tuple(fx.get("color", (0, 200, 255))), int(fx.get("speed", 5)))
+
+    def _apply_camera(self, dev: Device, rec: dict[str, Any]) -> None:
+        from .camera import apply_values
+        mode = rec.get("camera_mode")
+        if mode and len(mode) == 4:                      # first: a new video mode can reset the controls
+            try:
+                dev.set_video_mode(str(mode[0]), int(mode[1]), int(mode[2]), int(mode[3]))
+            except (OSError, ValueError) as e:
+                _debuglog.log("error", f"camera video mode: {e!r}")
+        if rec.get("camera"):
+            for err in apply_values(dev, rec["camera"]):
+                _debuglog.log("error", f"camera: {err}")
 
     def apply_buttons(self, dev: Device) -> None:
         """Write the button bindings (diversions + remaps) of the profile in force."""

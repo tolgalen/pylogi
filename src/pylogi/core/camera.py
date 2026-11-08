@@ -73,7 +73,7 @@ def builtin_preset(name: str, controls: list[CamControl]) -> dict[str, int]:
     if name == "Default":
         autos = {roles[r].id for r in AUTO_OF.values() if r in roles}
         ordered = [c for c in controls if c.id in autos] + [c for c in controls if c.id not in autos]
-        return {c.name: c.default for c in ordered if c.writable}
+        return {c.name: c.default for c in ordered if c.writable and not c.is_button}
 
     out: dict[str, int] = {}
     for r in AUTO_OF.values():
@@ -120,6 +120,56 @@ def plan_writes(values: dict[str, int], controls: list[CamControl]) -> list[tupl
                 inactive.add(roles[manual].id)
     autos = {roles[a].id for a in AUTO_OF.values() if a in roles}
     plan = [(by_name[n], v) for n, v in values.items()
-            if n in by_name and by_name[n].writable and by_name[n].id not in inactive]
+            if n in by_name and by_name[n].writable and not by_name[n].is_button and by_name[n].id not in inactive]
     plan.sort(key=lambda cv: (cv[0].id not in autos, cv[0].type == 1))
     return plan
+
+
+# ----------------------------------------------------------------- stored state
+def snapshot(controls: list[CamControl]) -> dict[str, int]:
+    """Current value of every control that can be written (buttons are actions, not values)."""
+    return {c.name: c.value for c in controls if c.writable and not c.is_button}
+
+
+def resolve_preset(cfg, uid: str, name: str, controls: list[CamControl]) -> dict[str, int]:
+    """Values of a preset: the user's own version of a built-in one, a saved preset, or the built-in recipe."""
+    over = cfg.get(f"camover:{uid}", {})
+    if name in over:
+        return dict(over[name])
+    if name in BUILTIN:
+        return builtin_preset(name, controls)
+    return dict(cfg.get(f"cam:{uid}", {}).get(name, {}))
+
+
+def preset_names(cfg, uid: str) -> list[str]:
+    return [*(str(b) for b in BUILTIN), *cfg.get(f"cam:{uid}", {})]
+
+
+def apply_values(dev, values: dict[str, int]) -> list[str]:
+    """Write a set of control values in a safe order; returns the errors (empty when everything was written)."""
+    failed = []
+    for c, v in plan_writes(values, dev.cam_controls()):
+        try:
+            dev.set_cam_control(c.id, int(v))
+        except OSError as e:
+            failed.append(f"{c.name}: {e.strerror or e}")
+    return failed
+
+
+def apply_preset(dev, cfg, name: str) -> list[str]:
+    errors = apply_values(dev, resolve_preset(cfg, dev.uid, name, dev.cam_controls()))
+    cfg.set(f"campreset:{dev.uid}", name)
+    return errors
+
+
+def mode_text(mode: tuple[str, int, int, int]) -> str:
+    fmt, w, h, fps = mode
+    return f"{fmt} {w}x{h}" + (f" @{fps}" if fps else "")
+
+
+def parse_mode(text: str) -> tuple[str, int, int, int]:
+    """'MJPG:1280x720@30' (also 'MJPG 1280x720 @30') -> ('MJPG', 1280, 720, 30)."""
+    m = re.fullmatch(r"\s*([A-Za-z0-9]{3,4})[\s:]+(\d+)x(\d+)\s*(?:@\s*(\d+))?\s*", text)
+    if not m:
+        raise ValueError(f"expected FORMAT:WIDTHxHEIGHT@FPS (for example MJPG:1280x720@30), got '{text}'")
+    return m.group(1).upper(), int(m.group(2)), int(m.group(3)), int(m.group(4) or 0)

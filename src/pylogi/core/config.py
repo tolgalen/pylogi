@@ -26,7 +26,7 @@ def config_dir() -> Path:
 
 # Settings of one device are kept in their own file, devices/<name>__<id>.json, not in config.json.
 # A key "<prefix>:<id>" with one of these prefixes is routed there; the id is the device key or uid.
-DEVICE_PREFIXES = ("dev", "keys", "campreset", "cam")
+DEVICE_PREFIXES = ("dev", "keys", "campreset", "camrules", "camover", "cam")
 
 
 def _split(key: str) -> tuple[str, str] | None:

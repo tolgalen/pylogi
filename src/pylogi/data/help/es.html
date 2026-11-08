@@ -86,7 +86,12 @@ Habla directamente con los dispositivos (HID++), así que no necesitas ningún s
 <ul>
 <li><b>Objetivo</b>: zoom, panorámica, inclinación, enfoque y exposición. El enfoque y la exposición tienen un chip <b>Auto</b>; con Auto activado el deslizador aparece atenuado porque la cámara controla el valor.</li>
 <li><b>Imagen</b>: antiparpadeo (50/60 Hz), compensación de contraluz, brillo, contraste, saturación, nitidez, ganancia y balance de blancos (con Auto).</li>
-<li><b>Presets</b>: <i>Predeterminado</i> (los valores de fábrica de la cámara), <i>Streaming</i>, <i>Videollamada</i> y los tuyos. <b>+ Nuevo</b> guarda los valores actuales con un nombre; pulsa con el botón derecho un preset para eliminarlo. <b>Restablecer valores predeterminados</b> restaura los valores de fábrica.</li>
+<li><b>Presets</b>: <i>Predeterminado</i> (los valores de fábrica de la cámara), <i>Streaming</i>, <i>Videollamada</i> y los tuyos. <b>+ Nuevo</b> guarda los valores actuales con un nombre; pulsa con el botón derecho un preset para <i>Actualizar con los valores actuales</i>, <i>Renombrar&hellip;</i> o <i>Eliminar</i>; en los incluidos, <i>Personalizar con los valores actuales</i> (marcado con *) y <i>Restaurar el original</i>. <b>Restablecer valores predeterminados</b> restaura los valores de fábrica.</li>
+<li><b>Formato de vídeo</b>: formato de píxel (MJPG, YUYV, H264&hellip;), tamaño y fotogramas por segundo. Al aplicarlo se pausa la vista previa. Los programas que eligen su propio formato lo sustituyen.</li>
+<li><b>Autoajustar y fijar</b>: deja que la cámara elija un momento exposición, enfoque y balance de blancos y luego conserva esos valores como manuales.</li>
+<li><b>Presets por aplicación&hellip;</b>: un preset que se activa mientras una aplicación tiene el foco (por ejemplo <i>Videollamada</i> para <code>zoom</code>) y deja paso al anterior después. Usa la misma detección de ventana que los perfiles por aplicación de los ratones.</li>
+<li><b>Cuadrícula</b>, <b>Espejo</b> e <b>Histograma</b> bajo la vista previa son solo ayudas de visualización; no cambian la cámara. Algunos controladores añaden botones de acción (como <i>Pan/Tilt Reset</i>), con un chip <b>Ejecutar</b>.</li>
+<li>Cada cambio se recuerda y se vuelve a escribir al conectar la cámara o al despertar el equipo. Una cámara se reconoce por su número de serie o, sin él, por el puerto USB en que está. El menú de la bandeja lista los presets de cada cámara, y <code>--set</code> acepta <code>preset=NOMBRE</code> y <code>video-mode=MJPG:1280x720@30</code>.</li>
 </ul>
 
 <h2><a name="device-section"></a>La sección Dispositivo</h2>

@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
         from . import tray_menu
         menu = self._tray_menu
         menu.clear()
-        if tray_menu.fill(menu, self.manager.devices, lambda m: self.manager._err(f"tray: {m}")):
+        if tray_menu.fill(menu, self.manager.devices, lambda m: self.manager._err(f"tray: {m}"), self.cfg, self.settings):
             menu.addSeparator()
         showing = self.isVisible() and not self.isMinimized()
         show = QAction(tr("Hide") if showing else tr("Show"), menu)

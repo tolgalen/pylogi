@@ -201,7 +201,7 @@ Without options `pylogi` starts the graphical interface. The options are generat
 <!-- CLI-END -->
 
 Settings accepted by `--set`: `dpi`, `smartshift` (`ratchet`/`free`), `wheel-invert`, `wheel-hires`, `report-rate`,
-`fn-lock`, `thumb-invert`, `backlight`, `camera.<control>`; on/off settings also take `toggle`. `--get DEVICE dpi battery firmware` prints just those values. Examples:
+`fn-lock`, `thumb-invert`, `backlight`, `preset=NAME` and `video-mode=MJPG:1280x720@30` (webcams), `camera.<control>`; on/off settings also take `toggle`. `--get DEVICE dpi battery firmware` prints just those values. Examples:
 
 ```bash
 pylogi --list --json

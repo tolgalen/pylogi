@@ -362,7 +362,7 @@ class DevicePage(QWidget):
         if key == "lighting":
             return _scroll(LightingCard(dev, self.cfg))
         if key == "webcam":
-            return CameraPage(dev, self.cfg)
+            return CameraPage(dev, self.cfg, self.settings)
         extra = [ReceiverCard(dev)] if "receiver" in dev.caps else []
         page = DetailsPage(dev, self.cfg, extra, self.history)
         page.settings_requested.connect(self.settings_requested)

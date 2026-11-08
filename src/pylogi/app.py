@@ -116,6 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     cfg = Config()
     set_language(args.lang or cfg.get("language", "auto"))
 
+    settings = None
     if args.demo:
         from .core.demo import DemoManager
         manager = DemoManager()
@@ -182,9 +183,12 @@ def main(argv: list[str] | None = None) -> int:
             if not dev.online and len(args.get) > 1:
                 print(f"{dev.name} is offline", file=sys.stderr)
                 return 1
-            print(json.dumps(cli.get(dev, args.get[1:]), indent=1))
+            print(json.dumps(cli.get(dev, args.get[1:], settings), indent=1))
         else:
             dev = cli.find(manager.devices, args.set[0])
+            if settings is None:
+                print("--set writes to real devices; it cannot be used with --demo", file=sys.stderr)
+                return 1
             if not dev.online:
                 print(f"{dev.name} is offline", file=sys.stderr)
                 return 1
@@ -228,6 +232,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.demo:
         from .core.actions import ActionEngine
         engine = ActionEngine(settings)       # software actions for diverted buttons
+        from .core.camera_rules import CameraAutomation
+        engine.app_listeners.append(CameraAutomation(manager, cfg, settings))
         engine.start_watching()
     win = MainWindow(manager, cfg, images, settings if not args.demo else None)
     holder["win"] = win

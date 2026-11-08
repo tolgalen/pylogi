@@ -30,8 +30,9 @@ def forget_cache(dev: Device | None = None) -> None:
         _cache.pop(k, None)
 
 
-def _switchable(dev: Device) -> bool:
-    return dev.online and dev.kind != "receiver" and (dev.has("profiles") or dev.has("easyswitch"))
+def _switchable(dev: Device, cfg=None) -> bool:
+    return dev.online and dev.kind != "receiver" and (
+        dev.has("profiles") or dev.has("easyswitch") or (cfg is not None and dev.has("webcam")))
 
 
 MAX_LINE = 34          # a longer device name is split in two lines
@@ -57,15 +58,16 @@ def _title(dev: Device) -> str:
     return f"{icon} {b.percent}%" + ("⚡" if b.charging else "") + "  " + _two_lines(dev.name)
 
 
-def fill(menu: QMenu, devices: list[Device], on_error: Callable[[str], None] = lambda m: None) -> int:
+def fill(menu: QMenu, devices: list[Device], on_error: Callable[[str], None] = lambda m: None, cfg=None,
+         settings=None) -> int:
     """Append one submenu per online device that has something to switch; returns how many were added."""
     n = 0
     for dev in devices:
-        if not _switchable(dev):
+        if not _switchable(dev, cfg):
             continue
         sub = menu.addMenu(_title(dev))
         try:
-            added = _profiles(sub, dev, on_error) + _hosts(sub, dev, on_error)
+            added = _profiles(sub, dev, on_error) + _hosts(sub, dev, on_error) + _presets(sub, dev, on_error, cfg, settings)
         except Exception as e:                      # a device that does not answer must not break the menu
             on_error(f"{dev.name}: {e}")
             added = 0
@@ -116,6 +118,33 @@ def _hosts(sub: QMenu, dev: Device, on_error) -> int:
         group.addAction(a)
         sub.addAction(a)
     return len(paired)
+
+
+def _presets(sub: QMenu, dev: Device, on_error, cfg, settings) -> int:
+    """Webcam: one entry per preset (the built-in ones and the user's own)."""
+    if cfg is None or not dev.has("webcam"):
+        return 0
+    from ..core.camera import BUILTIN, apply_preset, preset_names
+    current = cfg.get(f"campreset:{dev.uid}", "Default")
+    sub.addSection(tr("Preset"))
+    group = QActionGroup(sub)
+    names = preset_names(cfg, dev.uid)
+
+    def choose(name: str) -> None:
+        errors = apply_preset(dev, cfg, name)
+        if settings is not None:
+            settings.remember_camera(dev)
+        if errors:
+            on_error("; ".join(errors))
+
+    for name in names:
+        a = QAction(tr(name) if name in BUILTIN else name, sub)
+        a.setCheckable(True)
+        a.setChecked(name == current)
+        a.triggered.connect(lambda _=False, n=name: _run(dev, on_error, choose, n))
+        group.addAction(a)
+        sub.addAction(a)
+    return len(names)
 
 
 def _run(dev: Device, on_error, fn, *args) -> None:

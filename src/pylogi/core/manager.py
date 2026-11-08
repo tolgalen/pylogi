@@ -138,6 +138,7 @@ class DeviceManager(QObject):
         self._thread: Optional[threading.Thread] = None
         self._sig: tuple = ()
         self.errors: list[str] = []
+        self._cams_seen: set[str] = set()
         self.known = Config(config_dir() / "known_devices.json")   # identities seen before
         self.history = BatteryHistory()
 
@@ -431,6 +432,11 @@ class DeviceManager(QObject):
         if self.cfg is not None:                       # "Delete from pyLogi": never shown, never recorded
             gone = set(self.cfg.get("deleted", []))
             devs = [d for d in devs if d.device_key() not in gone]
+        cams = {d.uid for d in devs if d.kind == "webcam"}
+        for d in devs:
+            if d.kind == "webcam" and d.uid not in self._cams_seen:      # plugged in (or first seen): saved settings again
+                self._restore(d)
+        self._cams_seen = cams
         for d in devs:
             if d.online and d.battery is not None and d.battery.percent is not None:
                 self.history.record(d.device_key(), d.battery.percent, d.battery.charging)

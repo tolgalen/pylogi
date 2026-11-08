@@ -385,6 +385,7 @@ class ActionEngine:
         self._stop = threading.Event()
         self._watcher: Optional[threading.Thread] = None
         self.on_profile_change: Callable[[Optional[str]], None] | None = None
+        self.app_listeners: list = []          # callables(app) that also follow the focus; may offer wants_app()
         self._gesture: dict[str, dict] = {}                         # uid -> {"cid", "dx", "dy"} while a gesture button is held
         self._rawxy: set[tuple[str, int]] = set()                   # (uid, cid) whose raw-XY reporting we switched on
         self._macros: set[int] = set()                              # ids of the macro scripts running (no overlapping runs)
@@ -402,7 +403,8 @@ class ActionEngine:
 
     def _watch(self) -> None:
         while not self._stop.wait(1.0):
-            if not any(len(self.settings.profiles(d)) > 1 for d in list(self._devs.values())):
+            if not (any(len(self.settings.profiles(d)) > 1 for d in list(self._devs.values()))
+                    or any(getattr(f, "wants_app", lambda: True)() for f in self.app_listeners)):
                 continue
             app = self.detector.current()
             if app != self.active_app:
@@ -415,6 +417,11 @@ class ActionEngine:
                 self.configure(dev)
             except Exception as e:
                 _debuglog.log("error", f"re-applying a profile: {e!r}")
+        for fn in list(self.app_listeners):
+            try:
+                fn(app)
+            except Exception as e:
+                _debuglog.log("error", f"application listener: {e!r}")
         if self.on_profile_change:
             self.on_profile_change(app)
 
