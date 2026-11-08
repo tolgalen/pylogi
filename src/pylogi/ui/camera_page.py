@@ -3,7 +3,7 @@
 """Webcam page: live preview + camera controls with presets."""
 from __future__ import annotations
 
-from PySide6.QtCore import QPoint, QRectF, Qt, QTimer
+from PySide6.QtCore import QPoint, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPen
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QComboBox, QDialog, QFrame,
                                QHBoxLayout, QInputDialog, QLabel, QMenu, QMessageBox,
@@ -33,7 +33,23 @@ class Preview(QWidget):
         self.cam = None
         self.grid = self.mirror = self.histogram = False          # viewing aids; they never touch the camera
         self.setMinimumSize(300, 190)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        policy.setHeightForWidth(True)              # the picture grows with the width of the window
+        self.setSizePolicy(policy)
+        self._ratio = 16 / 9
+        self.max_height = 10 ** 6                 # the page lowers it so a wide, short window never clips the card
+
+    def _aspect(self) -> float:
+        return self.image.width() / self.image.height() if self.image is not None and self.image.height() else 16 / 9
+
+    def hasHeightForWidth(self) -> bool:
+        return True
+
+    def heightForWidth(self, w: int) -> int:
+        return max(190, min(int(w / self._ratio), self.max_height))
+
+    def sizeHint(self):
+        return QSize(640, int(640 / self._ratio))
 
     def start(self) -> None:
         if self.cam is not None or not getattr(self.dev, "previewable", True):
@@ -81,6 +97,10 @@ class Preview(QWidget):
         img = frame.toImage()
         if not img.isNull():
             self.image = img
+            ratio = self._aspect()
+            if abs(ratio - self._ratio) > 0.01:         # another resolution / shape: the frame is resized to fit
+                self._ratio = ratio
+                self.updateGeometry()
             self.update()
 
     def _error(self, *_a) -> None:
@@ -702,6 +722,13 @@ class CameraPage(QWidget):
             QMessageBox.warning(self, tr("Error"), "\n".join(failed))
         self.reload()
         self.remember()
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        room = max(190, self.height() - 150)           # margins, card title and the viewing-aid chips
+        if room != self.preview.max_height:
+            self.preview.max_height = room
+            self.preview.updateGeometry()
 
     # -- the camera is only opened while this page is visible
     def showEvent(self, e):

@@ -278,6 +278,19 @@ class PageTests(unittest.TestCase):
         self.assertEqual(value(cam, "Auto Exposure"), 1)
         self.assertEqual(st.camera(cam)["Auto Exposure"], 1)
 
+    def test_preview_grows_with_the_width_but_never_taller_than_the_page(self):
+        page, _, _, _ = self.page()
+        pv = page.preview
+        self.assertTrue(pv.hasHeightForWidth())
+        self.assertEqual(pv.heightForWidth(1600), 900)             # 16:9
+        self.assertGreater(pv.heightForWidth(1200), pv.heightForWidth(600))
+        page.show()
+        page.resize(1600, 500)
+        APP.processEvents()
+        self.assertEqual(pv.heightForWidth(1600), 350)             # page height minus margins and chips
+        pv._ratio = 4 / 3
+        self.assertEqual(pv.heightForWidth(300), 225)
+
     def test_viewing_aids_are_saved(self):
         page, cfg, _, _ = self.page()
         page._aid("grid", True)
