@@ -5,6 +5,11 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+### Added
+- Debian / Ubuntu package (`scripts/build_deb.py`, built on Ubuntu 22.04 in the release workflow): a self-contained `.deb` for
+  Debian 12/13 and Ubuntu 22.04 or later, with menu entry, icons, udev rules and the user service. Installed and started in
+  containers of all four releases.
+
 ## [0.3.1] - 2026-11-08
 
 ### Added

@@ -226,3 +226,24 @@ class ReceiverDialogs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DebPackage(unittest.TestCase):
+    def test_layout_of_the_deb(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+        import build_deb
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = Path(tmp) / "bundle"
+            (bundle / "_internal").mkdir(parents=True)
+            (bundle / "pylogi").write_bytes(b"\x7fELF")
+            root = Path(tmp) / "pkg"
+            build_deb.stage(root, bundle)
+            self.assertEqual(os.readlink(root / "usr/bin/pylogi"), "../lib/pylogi/pylogi")
+            for rel in ("usr/share/applications/pylogi.desktop", "usr/lib/udev/rules.d/42-pylogi.rules",
+                        "usr/lib/systemd/user/pylogi.service", "usr/share/icons/hicolor/scalable/apps/pylogi.svg",
+                        "usr/share/icons/hicolor/48x48/apps/pylogi.png", "usr/share/doc/pylogi/copyright"):
+                self.assertTrue((root / rel).exists(), rel)
+            self.assertIn("ExecStart=/usr/bin/pylogi", (root / "usr/lib/systemd/user/pylogi.service").read_text())
+            control = build_deb.CONTROL.format(version="1", arch="amd64", size=1, depends=", ".join(build_deb.DEPENDS),
+                                               recommends="x11-utils")
+            self.assertTrue(control.startswith("Package: pylogi\n"))

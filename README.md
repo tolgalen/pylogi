@@ -133,6 +133,14 @@ the icons and the udev rules (`/usr/lib/udev/rules.d/42-pylogi.rules`), so no ex
 `sudo dnf install dist/pylogi-<version>-1.fc45.noarch.rpm`. Built and checked on Fedora 45 (file list, dependencies, the
 package imports from the extracted tree, the desktop file validates); not installed with `dnf` here.
 
+### Debian and Ubuntu (.deb)
+
+`pylogi_<version>_amd64.deb` (attached to every release) works on Debian 12 and 13 and Ubuntu 22.04 or later:
+`sudo apt install ./pylogi_<version>_amd64.deb`. It carries its own Python and Qt (those releases have no PySide6 package),
+so it is large, and installs the `pylogi` command, the menu entry, the icons, the udev rules and the optional user
+service. `python scripts/build_deb.py` builds it from the PyInstaller bundle; build it on Ubuntu 22.04 (a container is
+enough) so the result runs on every newer system.
+
 ## Using pyLogi
 
 The complete manual is inside the application (**F1**, or the **?** button): every screen, every setting, every
@@ -340,7 +348,7 @@ python run.py --demo                         # simulated devices, no hardware ne
   (checked by the tests).
 * **Continuous integration:** `.github/workflows/ci.yml` runs lint (ruff, mypy), translation check, tests with coverage on
   Python 3.10-3.14, an informational Windows / macOS run, a wheel build and an RPM build on Fedora. Pushing a `vX.Y.Z` tag
-  runs `.github/workflows/release.yml` (bundles + RPM + GitHub release). See `CONTRIBUTING.md` and `CHANGELOG.md`.
+  runs `.github/workflows/release.yml` (bundles + RPM + .deb + GitHub release). See `CONTRIBUTING.md` and `CHANGELOG.md`.
 
 ## Licence and credits
 

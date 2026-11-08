@@ -49,5 +49,5 @@ CI fails if they are out of date.
 
 1. Bump `__version__` in `src/pylogi/__init__.py` and `version` in `pyproject.toml`; move the `[Unreleased]` entries in
    `CHANGELOG.md` under the new version.
-2. Commit, then `git tag vX.Y.Z && git push --tags`. The *release* workflow builds the bundles and the RPM and publishes them.
-3. Local builds: `python scripts/build_release.py` (PyInstaller) and `python scripts/build_rpm.py` (builds from `git HEAD`).
+2. Commit, then `git tag vX.Y.Z && git push --tags`. The *release* workflow builds the bundles, the RPM and the .deb and publishes them.
+3. Local builds: `python scripts/build_release.py` (PyInstaller) `python scripts/build_rpm.py` (builds from `git HEAD`) and `python scripts/build_deb.py` (the .deb; build it on Ubuntu 22.04, e.g. in a container, so it runs on every newer system).
