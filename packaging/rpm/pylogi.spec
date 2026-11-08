@@ -3,7 +3,7 @@
 #
 # Fedora package (noarch): pyLogi runs on the distribution's own PySide6.
 # Build:  python scripts/build_rpm.py        (RPM and SRPM end up in ./dist)
-%{!?pylogi_version: %global pylogi_version 0.3.1}
+%{!?pylogi_version: %global pylogi_version 0.3.2}
 
 Name:           pylogi
 Version:        %{pylogi_version}
@@ -92,6 +92,11 @@ udevadm trigger --subsystem-match=hidraw --subsystem-match=misc >/dev/null 2>&1 
 %{_userunitdir}/pylogi.service
 
 %changelog
+* Sun Nov 08 2026 pyLogi contributors <candion@gmail.com> - 0.3.2-1
+- Webcams: saved settings are written again on plug-in, video format, editable presets, presets by application,
+  auto-adjust and lock, viewing aids, tray menu and command line
+- Debian / Ubuntu package
+
 * Sun Nov 08 2026 pyLogi contributors <candion@gmail.com> - 0.3.1-1
 - Background service (pylogi --service on), Wayland window detection on Sway, Hyprland, Niri and KDE
 - Command line reads and toggles, Unifying pairing dialog, unpair by name, firmware shown

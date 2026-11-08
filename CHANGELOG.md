@@ -5,6 +5,8 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-08
+
 ### Added
 - Webcams: every change is remembered and written again when the camera is plugged in or the computer wakes up
   (control values and video mode); the chosen preset is no longer lost on restart.
