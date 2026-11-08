@@ -5,6 +5,8 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-11-08
+
 ### Added
 - Windows: Logitech webcams are found through the Plug and Play device list (SetupAPI) and show up in the app with the
   live preview. Their image controls are not available there yet (no DirectShow backend).
