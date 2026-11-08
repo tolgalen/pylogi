@@ -71,6 +71,8 @@ class FakeDevice(Transport):
             rep(bytes([params[0]]))
         elif idx == 6 and fn == 0:
             rep(bytes([1, 0xD2, 0xD4, 0x51, 0x23]))
+        elif idx == 6 and fn == 1:
+            rep(bytes([0]) + b"RQR" + bytes([0x24, 0x01, 0x00, 0x12]))
         elif idx == 6 and fn == 2:
             rep(b"2538ZAK5A678")
         else:
@@ -335,6 +337,14 @@ class DeviceDetailsTests(unittest.TestCase):
 
     def test_identity(self):
         self.assertEqual(ft.read_identity(self.d), ("d2d45123", "2538ZAK5A678"))
+
+    def test_firmware(self):
+        self.assertEqual(ft.read_firmware(self.d), "RQR 24.01.B0012")
+
+    def test_firmware_is_empty_without_the_feature(self):
+        d = Hidpp20Device(Channel(FakeDevice()), 1)
+        d._index[F.FW_VERSION] = None
+        self.assertEqual(ft.read_firmware(d), "")
 
     def test_rename_host_chunks_and_limit(self):
         ft.rename_host(self.d, 2, "Portátil de Carlos")

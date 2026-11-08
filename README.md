@@ -108,8 +108,9 @@ sudo udevadm control --reload && sudo udevadm trigger     # then re-plug the dev
 ```
 
 Optional (each one also has a switch in **Settings**): `pylogi --install-launcher` (application menu entry and icon; it starts the launcher, so the private environment
-is used), `pylogi --autostart on` (start minimised with the session), and, for per-application profiles on GNOME/Wayland,
+is used), `pylogi --autostart on` (start minimised with the session), `pylogi --service on` (a systemd user service that keeps pyLogi running in the background and restarts it), and, for per-application profiles on GNOME/Wayland,
 `pylogi --install-gnome-extension` followed by a new login and `gnome-extensions enable pylogi-active-window@pylogi.local`.
+Sway, Hyprland, Niri and KDE Plasma need nothing but their own tool (`swaymsg`, `hyprctl`, `niri`, [`kdotool`](https://github.com/jinliu/kdotool)).
 
 Only one program should manage a receiver at a time. Close Solaar, Logi Options+, G HUB, logiops or **OpenLogi** (its
 `openlogi-agent` re-diverts buttons behind pyLogi's back); pyLogi shows a banner when it detects one.
@@ -176,14 +177,15 @@ Without options `pylogi` starts the graphical interface. The options are generat
 | `--yes` | do not ask for confirmation |
 | `--list` | print detected devices and exit |
 | `--json` | machine-readable output for --list |
-| `--get` `DEVICE` | print the current settings of a device as JSON |
-| `--set` `DEVICE NAME=VALUE` | change settings, e.g. --set 'MX Anywhere' dpi=1600 wheel-invert=on |
+| `--get` `DEVICE NAME` | print the settings of a device as JSON, or only the named ones, e.g. --get 'MX Master' dpi battery |
+| `--set` `DEVICE NAME=VALUE` | change settings, e.g. --set 'MX Anywhere' dpi=1600 wheel-invert=on (on/off, or toggle) |
 | `--restore-deleted` | list again the devices removed with 'Delete from pyLogi' |
 | `--no-splash` | do not show the start-up splash screen |
 | `--toggle` | show or hide the window of the running pyLogi and exit (bind it to a keyboard shortcut) |
 | `--minimized` | start hidden in the system tray |
 | `--install-launcher` | add pyLogi to the application menu |
 | `--autostart` `{on|off}` | start pyLogi with the desktop session |
+| `--service` `{on|off}` | run pyLogi as a systemd user service in the background (diverted buttons and profiles work with the window closed) |
 | `--install-gnome-extension` | install the helper extension that lets per-application profiles work on GNOME/Wayland |
 | `--export-help` `FILE` | write the help manual as a PDF file and exit |
 | `--license` | print the licence notice and exit |
@@ -191,7 +193,7 @@ Without options `pylogi` starts the graphical interface. The options are generat
 <!-- CLI-END -->
 
 Settings accepted by `--set`: `dpi`, `smartshift` (`ratchet`/`free`), `wheel-invert`, `wheel-hires`, `report-rate`,
-`fn-lock`, `backlight`, `camera.<control>`. Examples:
+`fn-lock`, `thumb-invert`, `backlight`, `camera.<control>`; on/off settings also take `toggle`. `--get DEVICE dpi battery firmware` prints just those values. Examples:
 
 ```bash
 pylogi --list --json

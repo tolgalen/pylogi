@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout
 )
 
+from ...core import debuglog as _debuglog
 from ...i18n import N_, tr
 from ..widgets import Card, guarded, muted
 
@@ -47,16 +48,89 @@ class ReceiverCard(Card):
     def _pair(self) -> None:
         if self.dev.rx.family == "Bolt":
             BoltPairDialog(self, self.dev).exec()
-            return
-        if guarded(self, self.dev.open_pairing, 30) is None:
-            pass
-        QMessageBox.information(self, tr("Receiver"),
-                                tr("Pairing is open for 30 seconds: switch the device on / press its connect button."))
+        else:
+            UnifyingPairDialog(self, self.dev).exec()
+        self._refresh()
+
+    def _refresh(self) -> None:
+        self.lst.setText("\n".join(self.dev.slot_names) or "—")
 
     def _unpair(self) -> None:
-        n, ok = QInputDialog.getInt(self, tr("Unpair"), tr("Paired devices"), 1, 1, 6)
-        if ok:
-            guarded(self, self.dev.unpair, n)
+        names = list(self.dev.slot_names)
+        if not names:
+            QMessageBox.information(self, tr("Unpair"), tr("No devices are paired with this receiver."))
+            return
+        choice, ok = QInputDialog.getItem(self, tr("Unpair"), tr("Device to unpair"), names, 0, False)
+        if not ok:
+            return
+        if QMessageBox.question(self, tr("Unpair"), tr("Unpair {name}? It will have to be paired again to be used.")
+                                .format(name=choice.split(":", 1)[-1].strip())) != QMessageBox.Yes:
+            return
+        guarded(self, self.dev.unpair, int(choice.split(":", 1)[0]))
+        guarded(self, self.dev.refresh, True)
+        self._refresh()
+
+
+class UnifyingPairDialog(QDialog):
+    """Pair a device with a Unifying / Lightspeed / Nano receiver: open the lock, then watch the paired list."""
+    TIMEOUT = 30
+
+    def __init__(self, parent, dev):
+        super().__init__(parent)
+        self.dev = dev
+        self.setWindowTitle(tr("Pair new device"))
+        self.setMinimumWidth(420)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(22, 20, 22, 20)
+        lay.setSpacing(12)
+        self.text = QLabel(tr("Switch the device off and on again (or press its connect button). "
+                              "It is searched for during the next {seconds} seconds.").format(seconds=self.TIMEOUT)
+                           + "\n\n" + tr("Searching for devices…"))
+        self.text.setWordWrap(True)
+        self.text.setTextFormat(Qt.PlainText)
+        lay.addWidget(self.text)
+        row = QHBoxLayout()
+        row.addStretch(1)
+        self.button = QPushButton(tr("Cancel"))
+        self.button.clicked.connect(self.reject)
+        row.addWidget(self.button)
+        lay.addLayout(row)
+        self.before = set(dev.slot_names)
+        self.elapsed = 0.0
+        self.done = False
+        guarded(self, dev.open_pairing, self.TIMEOUT)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._tick)
+        self.timer.start(2000)
+
+    def _tick(self) -> None:
+        self.elapsed += 2.0
+        guarded(self, self.dev.refresh, True, quiet=True)
+        new = [n for n in self.dev.slot_names if n not in self.before]
+        if new:
+            return self._finish(tr("Device paired.") + "\n" + new[0], ok=True)
+        if self.elapsed >= self.TIMEOUT + 2:
+            self._finish(tr("No device found. Check that it is in pairing mode and try again."))
+
+    def _finish(self, msg: str, ok: bool = False) -> None:
+        if self.done:
+            return
+        self.done = True
+        self.timer.stop()
+        if not ok:
+            try:
+                self.dev.rx.close_pairing()
+            except Exception as e:
+                _debuglog.log("error", f"closing the pairing lock: {e!r}")
+        self.text.setText(msg)
+        self.button.setText(tr("Close"))
+        self.button.clicked.disconnect()
+        self.button.clicked.connect(self.accept)
+
+    def reject(self) -> None:
+        if not self.done:
+            self._finish("")
+        super().reject()
 
 
 _BOLT_ERRORS = {"the device did not answer in time": N_("The device did not answer in time"),

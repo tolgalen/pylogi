@@ -68,6 +68,9 @@ StartupWMClass=pylogi
 EOF
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications pylogi.desktop
 
+# optional background service (enable with: pylogi --service on)
+install -Dpm 0644 packaging/systemd/pylogi.service %{buildroot}%{_userunitdir}/pylogi.service
+
 # access to the HID++ interfaces and /dev/uinput for the logged-in user
 install -Dpm 0644 packaging/42-pylogi.rules %{buildroot}%{_udevrulesdir}/42-pylogi.rules
 
@@ -86,6 +89,7 @@ udevadm trigger --subsystem-match=hidraw --subsystem-match=misc >/dev/null 2>&1 
 %{_datadir}/applications/pylogi.desktop
 %{_datadir}/icons/hicolor/*/apps/pylogi.*
 %{_udevrulesdir}/42-pylogi.rules
+%{_userunitdir}/pylogi.service
 
 %changelog
 * Sat Nov 07 2026 pyLogi contributors <candion@gmail.com> - 0.3.0-1

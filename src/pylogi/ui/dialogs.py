@@ -3,8 +3,10 @@
 """Settings and Add-device dialogs."""
 from __future__ import annotations
 
+import subprocess
+
 from PySide6.QtWidgets import (QComboBox, QDialog, QGridLayout, QHBoxLayout,
-                               QLabel, QPushButton, QScrollArea, QSpinBox, QTabWidget, QTreeWidget,
+                               QLabel, QMessageBox, QPushButton, QScrollArea, QSpinBox, QTabWidget, QTreeWidget,
                                QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from ..i18n import N_, available_languages, tr
@@ -80,6 +82,12 @@ class SettingsDialog(QDialog):
         self.autostart.setChecked(desktop.autostart_enabled())
         self.autostart.toggled.connect(desktop.set_autostart)
         lay.addWidget(self.autostart)
+        self.service = None
+        if desktop.service_available():
+            self.service = Switch(tr("Run in the background as a service (systemd)"))
+            self.service.setChecked(desktop.service_enabled())
+            self.service.toggled.connect(self._service)
+            lay.addWidget(self.service)
         self.launcher = Switch(tr("Show pyLogi in the application menu"))
         self.launcher.setChecked(desktop.launcher_installed())
         self.launcher.toggled.connect(desktop.set_launcher)
@@ -204,6 +212,21 @@ class SettingsDialog(QDialog):
         lay.addLayout(row)
         self._tooltips(exp, imp)
 
+    def _service(self, on: bool) -> None:
+        from ..core import desktop
+        try:
+            desktop.set_service(on)
+        except (OSError, subprocess.SubprocessError) as e:
+            self.service.blockSignals(True)
+            self.service.setChecked(not on)
+            self.service.blockSignals(False)
+            QMessageBox.warning(self, tr("Error"), str(e))
+            return
+        if on:                                              # the service replaces the autostart entry
+            self.autostart.blockSignals(True)
+            self.autostart.setChecked(False)
+            self.autostart.blockSignals(False)
+
     def _tooltips(self, exp, imp) -> None:
         """Explain every setting on hover."""
         tips = [
@@ -230,6 +253,10 @@ class SettingsDialog(QDialog):
         ]
         if hasattr(self, "gnome"):
             tips.append((self.gnome, tr("Install or remove the GNOME Shell extension that tells pyLogi which application has the focus. Needed for per-application profiles on Wayland; log out and in after installing.")))
+        if self.service is not None:
+            tips.append((self.service, tr("Start pyLogi as a systemd user service with the graphical session, minimised to the tray. "
+                                          "Diverted buttons, macros and application profiles keep working with the window closed, "
+                                          "and pyLogi is restarted if it stops. It replaces 'Start with the desktop session'.")))
         for w, text in tips:
             w.setToolTip(text)
 

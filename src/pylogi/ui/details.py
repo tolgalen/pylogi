@@ -216,6 +216,8 @@ def details_card(dev: Device, history=None) -> QFrame:
     rows = [(tr("Connection"), connection_text(dev)), (tr("Device key"), dev.device_key())]
     if dev.info.serial:
         rows.append((tr("Serial number"), dev.info.serial.upper()))
+    if dev.info.firmware:
+        rows.append((tr("Firmware"), dev.info.firmware))
     lay.addLayout(kv_grid(rows))
     return card
 

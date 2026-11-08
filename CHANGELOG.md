@@ -5,6 +5,16 @@ the release workflow copies the section of the tagged version into the GitHub re
 
 ## [Unreleased]
 
+### Added
+- Background service: `pylogi --service on|off` (and a switch in Settings) installs a systemd user service that keeps pyLogi
+  running minimised for the whole graphical session and restarts it if it stops; the RPM also ships the unit.
+- Per-application profiles on Wayland without the GNOME extension: the focused window is read from Sway (`swaymsg`),
+  Hyprland (`hyprctl`), Niri (`niri`) and KDE Plasma (`kdotool`). Parsers are tested; not tried on those compositors.
+- Command line: `--get DEVICE dpi battery ...` prints only the named settings; boolean settings accept `toggle`;
+  new `thumb-invert` setting.
+- Receivers: pairing a Unifying / Lightspeed / Nano device now shows progress and reports the new device; *Unpair* asks which
+  device to remove (by name) and confirms. The firmware versions of HID++ 2.0 devices are shown on the device page.
+
 ### Changed
 - The "Offline" notice on the device page is drawn in red (text and border), in every theme.
 

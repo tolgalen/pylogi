@@ -127,6 +127,64 @@ def set_autostart(on: bool) -> None:
         p.unlink(missing_ok=True)
 
 
+SERVICE = "pylogi.service"
+
+
+def service_unit(exe: str | None = None) -> str:
+    """systemd user unit: pyLogi runs minimised in the tray for the whole graphical session, so diverted buttons,
+    macros and per-application profiles keep working without opening the window, and it restarts if it dies."""
+    return ("[Unit]\nDescription=pyLogi - Logitech device manager\n"
+            "Documentation=https://github.com/tolgalen/pylogi\n"
+            "PartOf=graphical-session.target\nAfter=graphical-session.target\n\n"
+            f"[Service]\nType=simple\nExecStart={exe or _exec()} --minimized --no-splash\n"
+            "Restart=on-failure\nRestartSec=3\n\n"
+            "[Install]\nWantedBy=graphical-session.target\n")
+
+
+def service_path() -> Path:
+    return _xdg("XDG_CONFIG_HOME", ".config") / "systemd" / "user" / SERVICE
+
+
+def service_available() -> bool:
+    """True where a systemd user session can be driven (Linux with systemctl)."""
+    return sys.platform.startswith("linux") and shutil.which("systemctl") is not None
+
+
+def _systemctl(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["systemctl", "--user", *args], capture_output=True, text=True, timeout=20)
+
+
+def service_enabled() -> bool:
+    if not service_available():
+        return False
+    try:
+        return _systemctl("is-enabled", SERVICE).stdout.strip() == "enabled"
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def set_service(on: bool) -> str:
+    """Install + enable (or disable + remove) the user service; returns a short status text.
+
+    The service replaces the autostart entry (both would start a second copy at login)."""
+    if not service_available():
+        raise OSError("systemd is not available")
+    if on:
+        p = service_path()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(service_unit(), encoding="utf-8")
+        set_autostart(False)
+        _systemctl("daemon-reload")
+        r = _systemctl("enable", "--now", SERVICE)
+        if r.returncode:
+            raise OSError((r.stderr or r.stdout).strip() or "systemctl enable failed")
+        return "enabled"
+    _systemctl("disable", "--now", SERVICE)
+    service_path().unlink(missing_ok=True)
+    _systemctl("daemon-reload")
+    return "disabled"
+
+
 def install_gnome_extension() -> Path:
     """Copy the helper extension to the user's GNOME Shell folder (needs a log out/in to load)."""
     dest = _xdg("XDG_DATA_HOME", ".local/share") / "gnome-shell/extensions" / EXT_UUID

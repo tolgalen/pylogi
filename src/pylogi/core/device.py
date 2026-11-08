@@ -257,6 +257,10 @@ class HidppDevice(Device):
             self.info.unit, self.info.serial = ft.read_identity(d)
         except HidppError:
             pass
+        try:
+            self.info.firmware = ft.read_firmware(d)
+        except HidppError:
+            pass
         self.info.protocol = "%d.%d" % (self.dev.protocol or (0, 0))
         self.info.extra[N_("Features")] = ", ".join(f"{k:#06x}" for k in sorted(table))
         self._identified = True

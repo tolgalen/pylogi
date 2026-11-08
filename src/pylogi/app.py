@@ -38,9 +38,10 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--yes", action="store_true", help="do not ask for confirmation")
     ap.add_argument("--list", action="store_true", help="print detected devices and exit")
     ap.add_argument("--json", action="store_true", help="machine-readable output for --list")
-    ap.add_argument("--get", metavar="DEVICE", help="print the current settings of a device as JSON")
+    ap.add_argument("--get", nargs="+", metavar=("DEVICE", "NAME"),
+                    help="print the settings of a device as JSON, or only the named ones, e.g. --get 'MX Master' dpi battery")
     ap.add_argument("--set", nargs="+", metavar=("DEVICE", "NAME=VALUE"),
-                    help="change settings, e.g. --set 'MX Anywhere' dpi=1600 wheel-invert=on")
+                    help="change settings, e.g. --set 'MX Anywhere' dpi=1600 wheel-invert=on (on/off, or toggle)")
     ap.add_argument("--restore-deleted", action="store_true",
                     help="list again the devices removed with 'Delete from pyLogi'")
     ap.add_argument("--no-splash", action="store_true", help="do not show the start-up splash screen")
@@ -49,6 +50,9 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--minimized", action="store_true", help="start hidden in the system tray")
     ap.add_argument("--install-launcher", action="store_true", help="add pyLogi to the application menu")
     ap.add_argument("--autostart", choices=["on", "off"], help="start pyLogi with the desktop session")
+    ap.add_argument("--service", choices=["on", "off"],
+                    help="run pyLogi as a systemd user service in the background (diverted buttons and profiles work "
+                         "with the window closed)")
     ap.add_argument("--install-gnome-extension", action="store_true",
                     help="install the helper extension that lets per-application profiles work on GNOME/Wayland")
     ap.add_argument("--export-help", metavar="FILE", help="write the help manual as a PDF file and exit")
@@ -74,6 +78,14 @@ def main(argv: list[str] | None = None) -> int:
         from .ui import theme as _t
         for tid, name in _t.available_themes().items():
             print(f"{tid}\t{name}")
+        return 0
+    if args.service:
+        from .core import desktop
+        try:
+            print("service", desktop.set_service(args.service == "on"))
+        except OSError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
         return 0
     if args.install_launcher or args.autostart or args.install_gnome_extension:
         from .core import desktop
@@ -166,7 +178,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.list:
             cli.list_devices(manager.devices, args.json)
         elif args.get:
-            print(json.dumps(cli.get(cli.find(manager.devices, args.get)), indent=1))
+            dev = cli.find(manager.devices, args.get[0])
+            if not dev.online and len(args.get) > 1:
+                print(f"{dev.name} is offline", file=sys.stderr)
+                return 1
+            print(json.dumps(cli.get(dev, args.get[1:]), indent=1))
         else:
             dev = cli.find(manager.devices, args.set[0])
             if not dev.online:

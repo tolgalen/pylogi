@@ -120,6 +120,31 @@ def read_identity(d: Hidpp20Device) -> tuple[str, str]:
     return unit, serial
 
 
+_FW_KINDS = {0: "", 1: "bootloader ", 2: "hardware "}
+
+
+def read_firmware(d: Hidpp20Device) -> str:
+    """Firmware versions from DEVICE_FW_VERSION, e.g. "RQR 24.01.B0012, bootloader BOT 01.00"; "" if unknown."""
+    if not d.has(F.FW_VERSION):
+        return ""
+    parts = []
+    try:
+        count = d.call(F.FW_VERSION, 0)[0]
+        for entity in range(min(count, 8)):
+            r = d.call(F.FW_VERSION, 1, bytes([entity]))
+            kind = r[0] & 0x0F
+            if kind > 2:
+                continue
+            prefix = r[1:4].decode("ascii", "ignore").strip("\0 ")
+            text = f"{prefix} {r[4]:02X}.{r[5]:02X}".strip()
+            if kind == 0 and (r[6] or r[7]):
+                text += f".B{r[6]:02X}{r[7]:02X}"
+            parts.append(_FW_KINDS[kind] + text if kind else text)
+    except (HidppError, IndexError):
+        pass
+    return ", ".join(parts)
+
+
 def has_fn_lock(d: Hidpp20Device) -> bool:
     return d.has(F.FN_INVERSION) or d.has(F.NEW_FN_INVERSION)
 

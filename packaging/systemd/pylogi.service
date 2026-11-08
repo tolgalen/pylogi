@@ -1,0 +1,14 @@
+[Unit]
+Description=pyLogi - Logitech device manager
+Documentation=https://github.com/tolgalen/pylogi
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/pylogi --minimized --no-splash
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

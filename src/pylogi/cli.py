@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 pyLogi contributors
-"""Command-line control: `pylogi --list --json`, `--get DEVICE`, `--set DEVICE name=value ...`."""
+"""Command-line control: `pylogi --list --json`, `--get DEVICE [name ...]`, `--set DEVICE name=value ...`."""
 from __future__ import annotations
 
 import json
@@ -41,14 +41,64 @@ def list_devices(devices: list[Device], as_json: bool) -> None:
               f"{'online' if r['online'] else 'offline':8} battery={bat}")
 
 
-def get(dev: Device) -> dict:
+def read_value(dev: Device, name: str):
+    """Current value of one setting, in the form `--set` accepts it."""
+    name = name.lower().replace("_", "-")
+    if name == "dpi":
+        return dev.dpi().current
+    if name == "smartshift":
+        return "ratchet" if dev.smartshift()[0] else "free"
+    if name == "wheel-hires":
+        return dev.wheel()[0]
+    if name == "wheel-invert":
+        return dev.wheel()[1]
+    if name == "report-rate":
+        return dev.report_rate()[0]
+    if name == "fn-lock":
+        return dev.fn_lock()
+    if name == "backlight":
+        on, level, _ = dev.backlight()
+        return level if on else 0
+    if name == "thumb-invert":
+        return dev.thumb()[1]
+    if name == "battery":
+        return dev.battery.percent if dev.battery else None
+    if name == "firmware":
+        return dev.info.firmware
+    if name.startswith("camera."):
+        want = name.split(".", 1)[1]
+        from .core.camera import norm
+        for c in dev.cam_controls():
+            if norm(c.name).replace(" ", "-").startswith(want):
+                return c.value
+    raise SystemExit(f"unknown setting '{name}' (dpi, smartshift, wheel-invert, wheel-hires, report-rate, fn-lock, "
+                     "backlight, thumb-invert, battery, firmware, camera.<control>)")
+
+
+def get(dev: Device, names: list[str] | None = None) -> dict:
+    """Everything the device reports, or only the named settings."""
+    if names:
+        out = {}
+        for n in names:
+            try:
+                out[n] = read_value(dev, n)
+            except SystemExit:
+                raise
+            except Exception as e:
+                out[n] = {"error": f"{type(e).__name__}: {e}"}
+        return out
     snap = backup.snapshot(dev)
     if isinstance(snap.get("onboard"), dict):
         snap["onboard"] = {k: v for k, v in snap["onboard"].items() if k != "sectors"}   # raw memory is for --backup
     return snap
 
 
-def _bool(v: str) -> bool:
+def _bool(v: str, current: bool | None = None) -> bool:
+    """on/off words; `toggle` (or `~`) flips the current value."""
+    if v.lower() in ("toggle", "~"):
+        if current is None:
+            raise SystemExit("this setting cannot be toggled")
+        return not current
     return v.lower() in TRUE
 
 
@@ -64,22 +114,26 @@ def set_values(dev: Device, pairs: list[str], settings: DeviceSettings) -> list[
             dev.set_dpi(int(value))
             settings.save(dev, "dpi", int(value))
         elif name == "smartshift":
-            ratchet = value.lower() in ("ratchet", *TRUE)
-            _, thr = dev.smartshift()
+            cur, thr = dev.smartshift()
+            ratchet = (not cur) if value.lower() in ("toggle", "~") else value.lower() in ("ratchet", *TRUE)
             dev.set_smartshift(ratchet, thr)
             settings.save(dev, "smartshift", [ratchet, thr])
         elif name in ("wheel-invert", "wheel-hires"):
             hires, inv = dev.wheel()
             if name == "wheel-invert":
-                inv = _bool(value)
+                inv = _bool(value, inv)
             else:
-                hires = _bool(value)
+                hires = _bool(value, hires)
             dev.set_wheel(hires, inv)
             settings.save(dev, "wheel", [hires, inv])
         elif name == "report-rate":
             dev.set_report_rate(value)
         elif name == "fn-lock":
-            dev.set_fn_lock(_bool(value))
+            dev.set_fn_lock(_bool(value, dev.fn_lock()))
+        elif name == "thumb-invert":
+            inv = _bool(value, dev.thumb()[1])
+            dev.set_thumb(invert=inv)
+            settings.save_thumb(dev, invert=inv)
         elif name == "backlight":
             dev.set_backlight(int(value) > 0, int(value))
         elif name.startswith("camera."):
@@ -95,6 +149,6 @@ def set_values(dev: Device, pairs: list[str], settings: DeviceSettings) -> list[
                 dev.set_cam_control(cc.id, v)
         else:
             raise SystemExit(f"unknown setting '{name}' (dpi, smartshift, wheel-invert, wheel-hires, "
-                             "report-rate, fn-lock, backlight, camera.<control>)")
+                             "report-rate, fn-lock, backlight, thumb-invert, camera.<control>)")
         done.append(f"{name}={value}")
     return done

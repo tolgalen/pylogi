@@ -23,6 +23,7 @@ Binding = JSON dict, keyed by button (control id) inside a profile:
 """
 from __future__ import annotations
 
+import json
 import os
 import shlex
 import shutil
@@ -251,11 +252,106 @@ class GnomeDetector:
             return None
 
 
-class AutoDetector:
-    """First backend that works: the GNOME extension, else X11 / XWayland."""
+def _run(cmd: list[str]) -> Optional[str]:
+    """Output of a helper program, or None if it is missing, fails or hangs."""
+    if not shutil.which(cmd[0]):
+        return None
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=1)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return out.stdout if out.returncode == 0 else None
+
+
+class CommandDetector:
+    """Focused window class asked to the compositor's own command-line tool (Wayland compositors)."""
+    desktop = ""            # lower-case name looked for in XDG_CURRENT_DESKTOP / the compositor's own variable
+    env = ""                # variable the compositor sets in its sessions
+    tool = ""
+    cmd: list[str] = []
 
     def __init__(self):
-        self.backends = [GnomeDetector(), X11Detector()]
+        self.reason = f"needs {self.tool}" if self.in_session() else ""      # only worth mentioning in its own session
+        self._ok_until = 0.0
+        self._ok = False
+
+    @classmethod
+    def in_session(cls) -> bool:
+        return bool(cls.env and os.environ.get(cls.env)) or cls.desktop in os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+
+    @property
+    def available(self) -> bool:
+        if not (self.in_session() and shutil.which(self.tool)):
+            return False
+        now = time.monotonic()
+        if now > self._ok_until:
+            self._ok = self._query() is not None
+            self._ok_until = now + 5
+        return self._ok
+
+    def _query(self) -> Optional[str]:
+        return _run(self.cmd)
+
+    def parse(self, out: str) -> Optional[str]:
+        raise NotImplementedError
+
+    def current(self) -> Optional[str]:
+        out = self._query()
+        if not out:
+            return None
+        try:
+            app = self.parse(out)
+        except (ValueError, KeyError, TypeError, AttributeError):
+            return None
+        return app.strip().lower() if app and app.strip() else None
+
+
+class SwayDetector(CommandDetector):
+    """Sway / i3-compatible compositors: swaymsg's tree, the focused leaf."""
+    desktop, env, tool = "sway", "SWAYSOCK", "swaymsg"
+    cmd = ["swaymsg", "-t", "get_tree"]
+
+    def parse(self, out: str) -> Optional[str]:
+        stack = [json.loads(out)]
+        while stack:
+            n = stack.pop()
+            if n.get("focused"):
+                return n.get("app_id") or (n.get("window_properties") or {}).get("class")
+            stack.extend(n.get("nodes", []) + n.get("floating_nodes", []))
+        return None
+
+
+class HyprlandDetector(CommandDetector):
+    desktop, env, tool = "hyprland", "HYPRLAND_INSTANCE_SIGNATURE", "hyprctl"
+    cmd = ["hyprctl", "activewindow", "-j"]
+
+    def parse(self, out: str) -> Optional[str]:
+        return json.loads(out).get("class")
+
+
+class NiriDetector(CommandDetector):
+    desktop, env, tool = "niri", "NIRI_SOCKET", "niri"
+    cmd = ["niri", "msg", "--json", "focused-window"]
+
+    def parse(self, out: str) -> Optional[str]:
+        return (json.loads(out) or {}).get("app_id")
+
+
+class KdeDetector(CommandDetector):
+    """KDE Plasma (Wayland): needs the small `kdotool` helper, which asks KWin for the active window."""
+    desktop, env, tool = "kde", "KDE_FULL_SESSION", "kdotool"
+    cmd = ["kdotool", "getactivewindow", "getwindowclassname"]
+
+    def parse(self, out: str) -> Optional[str]:
+        return out.splitlines()[0]
+
+
+class AutoDetector:
+    """First backend that works: the GNOME extension, a Wayland compositor's own tool, else X11 / XWayland."""
+
+    def __init__(self):
+        self.backends = [GnomeDetector(), SwayDetector(), HyprlandDetector(), NiriDetector(), KdeDetector(),
+                         X11Detector()]
 
     @property
     def available(self) -> bool:
